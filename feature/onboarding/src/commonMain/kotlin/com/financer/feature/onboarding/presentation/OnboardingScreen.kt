@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -29,19 +30,23 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.financer.core.ui.theme.FinancerTheme
 import financer.feature.onboarding.generated.resources.Res
+import financer.feature.onboarding.generated.resources.onboarding_button_start
 import financer.feature.onboarding.generated.resources.onboarding_illustration
+import financer.feature.onboarding.generated.resources.onboarding_subtitle
+import financer.feature.onboarding.generated.resources.onboarding_title
 import org.jetbrains.compose.resources.painterResource
-
-private val Navy = Color(0xFF141852)
-private val LightBlue = Color(0xFFD6E6F6)
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OnboardingScreen(component: OnboardingComponent) {
+    val colors = FinancerTheme.colors
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White),
+            .background(MaterialTheme.colorScheme.background),
     ) {
         // Top section — illustration
         Box(
@@ -63,12 +68,12 @@ fun OnboardingScreen(component: OnboardingComponent) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-                .background(LightBlue)
+                .background(colors.lightBlue)
                 .padding(horizontal = 24.dp, vertical = 32.dp),
         ) {
             Text(
-                text = "Добро пожаловать в\nFinance Tracker",
-                color = Navy,
+                text = stringResource(Res.string.onboarding_title),
+                color = colors.darkNavy,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 36.sp,
@@ -77,8 +82,8 @@ fun OnboardingScreen(component: OnboardingComponent) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Наше приложение поможет вам легко и эффективно отслеживать ваши доходы и расходы.",
-                color = Navy.copy(alpha = 0.5f),
+                text = stringResource(Res.string.onboarding_subtitle),
+                color = colors.darkNavy.copy(alpha = 0.5f),
                 fontSize = 16.sp,
                 lineHeight = 24.sp,
             )
@@ -92,7 +97,7 @@ fun OnboardingScreen(component: OnboardingComponent) {
                     .height(56.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Navy,
+                    containerColor = colors.darkNavy,
                     contentColor = Color.White,
                 ),
             ) {
@@ -102,7 +107,7 @@ fun OnboardingScreen(component: OnboardingComponent) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Начать",
+                        text = stringResource(Res.string.onboarding_button_start),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -116,7 +121,7 @@ fun OnboardingScreen(component: OnboardingComponent) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                             contentDescription = null,
-                            tint = Navy,
+                            tint = colors.darkNavy,
                         )
                     }
                 }

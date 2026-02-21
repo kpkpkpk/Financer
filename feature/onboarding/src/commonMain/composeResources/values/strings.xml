@@ -1,0 +1,5 @@
+<resources>
+    <string name="onboarding_title">Добро пожаловать в\nFinance Tracker</string>
+    <string name="onboarding_subtitle">Наше приложение поможет вам легко и эффективно отслеживать ваши доходы и расходы.</string>
+    <string name="onboarding_button_start">Начать</string>
+</resources>

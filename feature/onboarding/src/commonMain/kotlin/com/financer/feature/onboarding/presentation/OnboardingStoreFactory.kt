@@ -1,24 +1,26 @@
 package com.financer.feature.onboarding.presentation
 
+import com.arkivanov.mvikotlin.core.store.Reducer
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import com.financer.feature.onboarding.domain.CompleteOnboardingUseCase
+import com.financer.feature.onboarding.presentation.OnboardingStore.Intent
+import com.financer.feature.onboarding.presentation.OnboardingStore.Label
+import com.financer.feature.onboarding.presentation.OnboardingStore.State
 
 class OnboardingStoreFactory(
     private val storeFactory: StoreFactory,
     private val completeOnboarding: CompleteOnboardingUseCase,
 ) {
 
-    fun create(): OnboardingStore =
-        object : OnboardingStore,
-            Store<OnboardingStore.Intent, OnboardingStore.State, OnboardingStore.Label>
-            by storeFactory.create(
-                name = "OnboardingStore",
-                initialState = OnboardingStore.State(),
-                executorFactory = { Executor(completeOnboarding) },
-                reducer = Reducer,
-            ) {}
+    fun create(): OnboardingStore = object : OnboardingStore, Store<Intent, State, Label>
+        by storeFactory.create(
+            name = "OnboardingStore",
+            initialState = State(),
+            executorFactory = { Executor(completeOnboarding) },
+            reducer = ReducerImpl,
+        ) {}
 
     private sealed interface Msg {
         data object Completing : Msg
@@ -26,21 +28,21 @@ class OnboardingStoreFactory(
 
     private class Executor(
         private val completeOnboarding: CompleteOnboardingUseCase,
-    ) : CoroutineExecutor<OnboardingStore.Intent, Nothing, OnboardingStore.State, Msg, OnboardingStore.Label>() {
+    ) : CoroutineExecutor<Intent, Nothing, State, Msg, Label>() {
 
-        override fun executeIntent(intent: OnboardingStore.Intent) {
+        override fun executeIntent(intent: Intent) {
             when (intent) {
-                is OnboardingStore.Intent.StartClicked -> {
+                is Intent.StartClicked -> {
                     dispatch(Msg.Completing)
                     completeOnboarding()
-                    publish(OnboardingStore.Label.OnboardingCompleted)
+                    publish(Label.OnboardingCompleted)
                 }
             }
         }
     }
 
-    private object Reducer : com.arkivanov.mvikotlin.core.store.Reducer<OnboardingStore.State, Msg> {
-        override fun OnboardingStore.State.reduce(msg: Msg): OnboardingStore.State =
+    private object ReducerImpl : Reducer<State, Msg> {
+        override fun State.reduce(msg: Msg): State =
             when (msg) {
                 is Msg.Completing -> copy(isCompleting = true)
             }
