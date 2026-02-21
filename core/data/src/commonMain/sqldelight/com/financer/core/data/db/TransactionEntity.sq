@@ -1,0 +1,48 @@
+CREATE TABLE TransactionEntity (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    type TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    category_id INTEGER NOT NULL,
+    date TEXT NOT NULL,
+    note TEXT,
+    FOREIGN KEY (category_id) REFERENCES Category(id)
+);
+
+selectAll:
+SELECT * FROM TransactionEntity ORDER BY date DESC;
+
+selectByPeriod:
+SELECT * FROM TransactionEntity WHERE date >= ? AND date <= ? ORDER BY date DESC;
+
+selectByCategory:
+SELECT * FROM TransactionEntity WHERE category_id = ? ORDER BY date DESC;
+
+selectById:
+SELECT * FROM TransactionEntity WHERE id = ?;
+
+insert:
+INSERT INTO TransactionEntity (type, amount, category_id, date, note) VALUES (?, ?, ?, ?, ?);
+
+update:
+UPDATE TransactionEntity SET type = ?, amount = ?, category_id = ?, date = ?, note = ? WHERE id = ?;
+
+deleteById:
+DELETE FROM TransactionEntity WHERE id = ?;
+
+countByCategory:
+SELECT category_id, COUNT(*) AS cnt FROM TransactionEntity GROUP BY category_id;
+
+avgAmountByCategory:
+SELECT category_id, CAST(AVG(amount) AS INTEGER) AS avg_amount FROM TransactionEntity WHERE type = ? GROUP BY category_id;
+
+lastDateByCategory:
+SELECT category_id, MAX(date) AS last_date FROM TransactionEntity GROUP BY category_id;
+
+totalCount:
+SELECT COUNT(*) FROM TransactionEntity;
+
+sumByTypeAndPeriod:
+SELECT type, SUM(amount) AS total FROM TransactionEntity WHERE date >= ? AND date <= ? GROUP BY type;
+
+sumByType:
+SELECT type, SUM(amount) AS total FROM TransactionEntity GROUP BY type;

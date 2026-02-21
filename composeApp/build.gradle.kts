@@ -29,10 +29,12 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.koin.android)
         }
         commonMain.dependencies {
             implementation(projects.core.ui)
             implementation(projects.core.data)
+            implementation(projects.core.common)
             implementation(projects.feature.onboarding)
             implementation(projects.feature.main)
             implementation(libs.compose.runtime)

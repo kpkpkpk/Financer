@@ -8,21 +8,21 @@
 
 ### Epic 1: Локальная база данных
 
-- [ ] 1.1. Подключить SQLDelight (или Room KMP) — зависимость в `libs.versions.toml`, плагин в `build.gradle.kts`
-- [ ] 1.2. Описать SQL-схему таблицы `categories` (id, name, emoji, type, is_default)
-- [ ] 1.3. Описать SQL-схему таблицы `transactions` (id, type, amount, category_id, date, note)
-- [ ] 1.4. Сгенерировать DAO/queries для `categories` (getAll, getByType, getById, insert, delete)
-- [ ] 1.5. Сгенерировать DAO/queries для `transactions` (getAll, getByPeriod, getByCategory, insert, update, delete)
-- [ ] 1.6. Создать `TransactionRepository` (интерфейс + локальная реализация) в `core/data`
-- [ ] 1.7. Создать `CategoryRepository` (интерфейс + локальная реализация) в `core/data`
-- [ ] 1.8. Заполнить предустановленные категории при первом запуске (prepopulate)
-- [ ] 1.9. Зарегистрировать репозитории в `CoreDataModule` (Koin)
+- [x] 1.1. Подключить SQLDelight (или Room KMP) — зависимость в `libs.versions.toml`, плагин в `build.gradle.kts`
+- [x] 1.2. Описать SQL-схему таблицы `categories` (id, name, emoji, type, is_default)
+- [x] 1.3. Описать SQL-схему таблицы `transactions` (id, type, amount, category_id, date, note)
+- [x] 1.4. Сгенерировать DAO/queries для `categories` (getAll, getByType, getById, insert, delete)
+- [x] 1.5. Сгенерировать DAO/queries для `transactions` (getAll, getByPeriod, getByCategory, insert, update, delete)
+- [x] 1.6. Создать `TransactionRepository` (интерфейс + локальная реализация) в `core/data`
+- [x] 1.7. Создать `CategoryRepository` (интерфейс + локальная реализация) в `core/data`
+- [x] 1.8. Заполнить предустановленные категории при первом запуске (prepopulate)
+- [x] 1.9. Зарегистрировать репозитории в `CoreDataModule` (Koin)
 
 ### Epic 2: Модуль core/common
 
-- [ ] 2.1. Создать gradle-модуль `core/common`, подключить в `settings.gradle.kts`
-- [ ] 2.2. Утилиты форматирования: сумма в строку (`12 344,50 ₽`), дата в строку
-- [ ] 2.3. Реализовать алгоритм скоринга категорий (Top-5) — функция `CategoryScorer.score(amount, transactions) → List<Category>`
+- [x] 2.1. Создать gradle-модуль `core/common`, подключить в `settings.gradle.kts`
+- [x] 2.2. Утилиты форматирования: сумма в строку (`12 344,50 ₽`), дата в строку
+- [x] 2.3. Реализовать алгоритм скоринга категорий (Top-5) — функция `CategoryScorer.score(amount, transactions) → List<Category>`
 
 ---
 
