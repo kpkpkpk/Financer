@@ -30,14 +30,13 @@
 
 ### Epic 3: Bottom Navigation + MainComponent
 
-- [ ] 3.1. Создать `MainComponent` с Decompose (Pages/Stack для вкладок + слот для модальных экранов)
-- [ ] 3.2. Описать `Config` для вкладок: Home, Insights, Settings
-- [ ] 3.3. Описать `Config` для модальных экранов: Transaction (create/edit), Filter
-- [ ] 3.4. Сверстать `MainScreen` с BottomNavigationBar (4 вкладки)
-- [ ] 3.5. Реализовать FAB-кнопку «+» по центру навбара (приподнятая)
-- [ ] 3.6. Платформенная адаптация навбара (Material 3 для Android, плоский стиль для iOS)
-- [ ] 3.7. Обновить `RootComponent` — после онбординга переходить на `MainComponent`
-- [ ] 3.8. Зарегистрировать `MainModule` в Koin
+- [x] 3.1. Создать `MainComponent` с Decompose (Pages для вкладок + слот для модальных экранов)
+- [x] 3.2. Описать `Config` для вкладок: Home, Insights, Settings
+- [x] 3.3. Описать `Config` для модальных экранов: Transaction (create/edit), Filter
+- [x] 3.4. Сверстать `MainScreen` с BottomNavigationBar (3 вкладки: Главная, Инсайты, Настройки)
+- [ ] 3.5. Платформенная адаптация навбара (Material 3 для Android, плоский стиль для iOS)
+- [x] 3.6. Обновить `RootComponent` — после онбординга переходить на `MainComponent`
+- [x] 3.7. Зарегистрировать `MainModule` в Koin
 
 ### Epic 4: Главный экран (Home)
 
@@ -59,7 +58,8 @@
 - [ ] 4.11. Верстка: элемент транзакции (эмодзи, название, время, сумма с цветом)
 - [ ] 4.12. Верстка: empty state (иллюстрация + текст + кнопка)
 - [ ] 4.13. Свайп для удаления (SwipeToDismiss) + диалог подтверждения
-- [ ] 4.14. Зарегистрировать `HomeModule` в Koin
+- [ ] 4.14. Верстка: FAB-кнопка «+» на экране Home для добавления транзакции
+- [ ] 4.15. Зарегистрировать `HomeModule` в Koin
 
 ### Epic 5: Добавление транзакции
 

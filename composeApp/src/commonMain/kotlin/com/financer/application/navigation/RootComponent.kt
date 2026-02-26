@@ -7,6 +7,7 @@ import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.mvikotlin.core.store.StoreFactory
+import com.financer.feature.main.navigation.MainComponent
 import com.financer.feature.onboarding.domain.CompleteOnboardingUseCase
 import com.financer.feature.onboarding.domain.IsOnboardingCompletedUseCase
 import com.financer.feature.onboarding.presentation.OnboardingComponent
@@ -39,12 +40,13 @@ class RootComponent(
                     onFinished = { navigation.replaceAll(Config.Main) },
                 )
             )
-            is Config.Main -> Child.Main
+
+            is Config.Main -> Child.Main(MainComponent(childContext))
         }
 
     sealed class Child {
         data class Onboarding(val component: OnboardingComponent) : Child()
-        data object Main : Child()
+        data class Main(val mainComponent: MainComponent) : Child()
     }
 
     @Serializable

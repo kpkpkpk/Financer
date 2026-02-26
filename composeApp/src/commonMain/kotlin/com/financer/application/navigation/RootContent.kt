@@ -17,7 +17,7 @@ fun RootContent(component: RootComponent) {
             is RootComponent.Child.Onboarding -> OnboardingScreen(
                 component = instance.component,
             )
-            is RootComponent.Child.Main -> MainScreen()
+            is RootComponent.Child.Main -> MainScreen(instance.mainComponent)
         }
     }
 }
