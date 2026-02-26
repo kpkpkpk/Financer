@@ -61,7 +61,7 @@ fun MainContent(mainComponent: MainComponent, modifier: Modifier = Modifier) {
             if (selectedChild is Child.Created) {
                 when (selectedChild.instance) {
                     is MainComponent.PagesChild.Home -> PlaceholderPage("Главная")
-                    is MainComponent.PagesChild.Insights -> PlaceholderPage("Инсайты")
+                    is MainComponent.PagesChild.Analytics -> PlaceholderPage("Инсайты")
                     is MainComponent.PagesChild.Settings -> PlaceholderPage("Настройки")
                 }
             }

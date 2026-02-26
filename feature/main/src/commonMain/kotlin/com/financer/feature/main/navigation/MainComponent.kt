@@ -28,7 +28,7 @@ class MainComponent(
             Pages(
                 items = listOf(
                     PagesConfig.Home,
-                    PagesConfig.Insights,
+                    PagesConfig.Analytics,
                     PagesConfig.Settings,
                 ),
                 selectedIndex = 0
@@ -37,7 +37,7 @@ class MainComponent(
     ) { config, context ->
         when (config) {
             PagesConfig.Home -> PagesChild.Home()
-            PagesConfig.Insights -> PagesChild.Insights()
+            PagesConfig.Analytics -> PagesChild.Analytics()
             PagesConfig.Settings -> PagesChild.Settings()
         }
     }
@@ -72,7 +72,7 @@ class MainComponent(
 
     sealed class PagesChild {
         class Home : PagesChild()
-        class Insights : PagesChild()
+        class Analytics : PagesChild()
         class Settings : PagesChild()
     }
 
@@ -87,7 +87,7 @@ class MainComponent(
         object Home : PagesConfig
 
         @Serializable
-        object Insights : PagesConfig
+        object Analytics : PagesConfig
 
         @Serializable
         object Settings : PagesConfig

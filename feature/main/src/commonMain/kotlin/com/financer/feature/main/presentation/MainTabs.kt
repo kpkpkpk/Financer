@@ -10,6 +10,6 @@ enum class MainTabs(
     val icon: DrawableResource,
 ) {
     HOME(Res.drawable.home),
-    INSIGHTS(Res.drawable.chart_line),
+    Analytics(Res.drawable.chart_line),
     SETTINGS(Res.drawable.settings),
 }
