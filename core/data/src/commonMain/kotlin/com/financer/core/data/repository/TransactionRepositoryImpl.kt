@@ -6,6 +6,8 @@ import com.financer.core.data.model.TransactionType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.toLocalDateTime
 
 class TransactionRepositoryImpl(
     private val database: FinancerDatabase
@@ -17,9 +19,10 @@ class TransactionRepositoryImpl(
         queries.selectAll().executeAsList().map { it.toDomain() }
     }
 
-    override suspend fun getByPeriod(from: String, to: String): List<Transaction> =
+    override suspend fun getByPeriod(from: LocalDateTime, to: LocalDateTime): List<Transaction> =
         withContext(Dispatchers.IO) {
-            queries.selectByPeriod(from, to).executeAsList().map { it.toDomain() }
+            queries.selectByPeriod(from.toString(), to.toString()).executeAsList()
+                .map { it.toDomain() }
         }
 
     override suspend fun getByCategory(categoryId: Long): List<Transaction> =
@@ -37,7 +40,7 @@ class TransactionRepositoryImpl(
                 type = transaction.type.name,
                 amount = transaction.amount,
                 category_id = transaction.categoryId,
-                date = transaction.date,
+                date = transaction.date.toString(),
                 note = transaction.note
             )
         }
@@ -49,7 +52,7 @@ class TransactionRepositoryImpl(
                 type = transaction.type.name,
                 amount = transaction.amount,
                 category_id = transaction.categoryId,
-                date = transaction.date,
+                date = transaction.date.toString(),
                 note = transaction.note,
                 id = transaction.id
             )
@@ -69,12 +72,14 @@ class TransactionRepositoryImpl(
     }
 
     override suspend fun getSumByTypeAndPeriod(
-        from: String,
-        to: String
+        from: LocalDateTime,
+        to: LocalDateTime
     ): Map<TransactionType, Long> = withContext(Dispatchers.IO) {
-        queries.sumByTypeAndPeriod(from, to).executeAsList().associate {
-            TransactionType.valueOf(it.type) to (it.total ?: 0L)
-        }
+        queries.sumByTypeAndPeriod(from.toString(), to.toString())
+            .executeAsList()
+            .associate {
+                TransactionType.valueOf(it.type) to (it.total ?: 0L)
+            }
     }
 
     override suspend fun getTotalCount(): Long = withContext(Dispatchers.IO) {
@@ -108,7 +113,7 @@ class TransactionRepositoryImpl(
             type = TransactionType.valueOf(type),
             amount = amount,
             categoryId = category_id,
-            date = date,
+            date = LocalDateTime.parse(date),
             note = note
         )
     }
