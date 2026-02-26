@@ -11,15 +11,15 @@ data class CategoryStat(
 )
 
 interface TransactionRepository {
-    fun getAll(): List<Transaction>
-    fun getByPeriod(from: String, to: String): List<Transaction>
-    fun getByCategory(categoryId: Long): List<Transaction>
-    fun getById(id: Long): Transaction?
-    fun insert(transaction: Transaction)
-    fun update(transaction: Transaction)
-    fun deleteById(id: Long)
-    fun getSumByType(): Map<TransactionType, Long>
-    fun getSumByTypeAndPeriod(from: String, to: String): Map<TransactionType, Long>
-    fun getTotalCount(): Long
-    fun getCategoryStats(type: TransactionType): List<CategoryStat>
+    suspend fun getAll(): List<Transaction>
+    suspend fun getByPeriod(from: String, to: String): List<Transaction>
+    suspend fun getByCategory(categoryId: Long): List<Transaction>
+    suspend fun getById(id: Long): Transaction?
+    suspend fun insert(transaction: Transaction)
+    suspend fun update(transaction: Transaction)
+    suspend fun deleteById(id: Long)
+    suspend fun getSumByType(): Map<TransactionType, Long>
+    suspend fun getSumByTypeAndPeriod(from: String, to: String): Map<TransactionType, Long>
+    suspend fun getTotalCount(): Long
+    suspend fun getCategoryStats(type: TransactionType): List<CategoryStat>
 }
