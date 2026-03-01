@@ -10,20 +10,19 @@ import com.financer.application.navigation.RootComponent
 import com.financer.feature.main.api.MainComponentFactory
 import com.financer.feature.onboarding.domain.CompleteOnboardingUseCase
 import com.financer.feature.onboarding.domain.IsOnboardingCompletedUseCase
+import org.koin.android.ext.android.get
 import org.koin.core.context.GlobalContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-
-        val koin = GlobalContext.get()
         val rootComponent = RootComponent(
             componentContext = defaultComponentContext(),
-            storeFactory = koin.get<StoreFactory>(),
-            mainComponentFactory = koin.get<MainComponentFactory>(),
-            isOnboardingCompleted = koin.get<IsOnboardingCompletedUseCase>(),
-            completeOnboarding = koin.get<CompleteOnboardingUseCase>(),
+            storeFactory = get<StoreFactory>(),
+            mainComponentFactory = get<MainComponentFactory>(),
+            isOnboardingCompleted = get<IsOnboardingCompletedUseCase>(),
+            completeOnboarding = get<CompleteOnboardingUseCase>(),
         )
 
         setContent {

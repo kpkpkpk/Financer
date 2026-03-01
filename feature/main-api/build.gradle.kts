@@ -16,6 +16,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(projects.feature.homeApi)
             implementation(libs.decompose)
         }
     }

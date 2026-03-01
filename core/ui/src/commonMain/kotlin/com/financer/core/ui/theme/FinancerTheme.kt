@@ -8,7 +8,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
-private val Cream = Color(0xFFF0E4D4)
+private val Cream = Color(0xFFFFF9E4)
 private val DarkNavy = Color(0xFF141852)
 private val SoftBlue = Color(0xFFB5D2F5)
 private val LightBlue = Color(0xFFD6E6F6)

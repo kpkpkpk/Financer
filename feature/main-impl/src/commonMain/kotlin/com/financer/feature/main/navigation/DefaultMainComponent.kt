@@ -12,11 +12,13 @@ import com.arkivanov.decompose.router.slot.activate
 import com.arkivanov.decompose.router.slot.childSlot
 import com.arkivanov.decompose.router.slot.dismiss
 import com.arkivanov.decompose.value.Value
+import com.financer.feature.home.api.HomeComponentFactory
 import com.financer.feature.main.api.MainComponent
 import kotlinx.serialization.Serializable
 
 class DefaultMainComponent(
     componentContext: ComponentContext,
+    homeComponentFactory: HomeComponentFactory
 ) : MainComponent, ComponentContext by componentContext {
 
     private val pagesNavigation = PagesNavigation<PagesConfig>()
@@ -35,9 +37,16 @@ class DefaultMainComponent(
                 selectedIndex = 0,
             )
         },
-    ) { config, _ ->
+    ) { config, childContext ->
         when (config) {
-            PagesConfig.Home -> MainComponent.PagesChild.Home
+            PagesConfig.Home -> MainComponent.PagesChild.Home(
+                homeComponentFactory.create(
+                    componentContext = childContext,
+                    onOpenFilter = { openFilterScreen() },
+                    onOpenTransaction = { openTransactionScreen() }
+                )
+            )
+
             PagesConfig.Analytics -> MainComponent.PagesChild.Analytics
             PagesConfig.Settings -> MainComponent.PagesChild.Settings
         }
