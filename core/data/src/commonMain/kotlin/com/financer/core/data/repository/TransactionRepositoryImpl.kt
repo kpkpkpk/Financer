@@ -3,11 +3,16 @@ package com.financer.core.data.repository
 import com.financer.core.data.db.FinancerDatabase
 import com.financer.core.data.model.Transaction
 import com.financer.core.data.model.TransactionType
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import app.cash.sqldelight.coroutines.mapToOne
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.toLocalDateTime
 
 class TransactionRepositoryImpl(
     private val database: FinancerDatabase
@@ -15,20 +20,23 @@ class TransactionRepositoryImpl(
 
     private val queries get() = database.transactionEntityQueries
 
-    override suspend fun getAll(): List<Transaction> = withContext(Dispatchers.IO) {
-        queries.selectAll().executeAsList().map { it.toDomain() }
-    }
+    override fun getAll(): Flow<List<Transaction>> = queries
+        .selectAll()
+        .asFlow()
+        .mapToList(Dispatchers.IO)
+        .map { entities -> entities.map { it.toDomain() } }
 
-    override suspend fun getByPeriod(from: LocalDateTime, to: LocalDateTime): List<Transaction> =
-        withContext(Dispatchers.IO) {
-            queries.selectByPeriod(from.toString(), to.toString()).executeAsList()
-                .map { it.toDomain() }
-        }
+    override fun getByPeriod(from: LocalDateTime, to: LocalDateTime): Flow<List<Transaction>> = queries
+        .selectByPeriod(from.toString(), to.toString())
+        .asFlow()
+        .mapToList(Dispatchers.IO)
+        .map { entities -> entities.map { it.toDomain() } }
 
-    override suspend fun getByCategory(categoryId: Long): List<Transaction> =
-        withContext(Dispatchers.IO) {
-            queries.selectByCategory(categoryId).executeAsList().map { it.toDomain() }
-        }
+    override fun getByCategory(categoryId: Long): Flow<List<Transaction>> = queries
+        .selectByCategory(categoryId)
+        .asFlow()
+        .mapToList(Dispatchers.IO)
+        .map { entities -> entities.map { it.toDomain() } }
 
     override suspend fun getById(id: Long): Transaction? = withContext(Dispatchers.IO) {
         queries.selectById(id).executeAsOneOrNull()?.toDomain()
@@ -65,33 +73,40 @@ class TransactionRepositoryImpl(
         }
     }
 
-    override suspend fun getSumByType(): Map<TransactionType, Long> = withContext(Dispatchers.IO) {
-        queries.sumByType().executeAsList().associate {
-            TransactionType.valueOf(it.type) to (it.total ?: 0L)
-        }
-    }
-
-    override suspend fun getSumByTypeAndPeriod(
-        from: LocalDateTime,
-        to: LocalDateTime
-    ): Map<TransactionType, Long> = withContext(Dispatchers.IO) {
-        queries.sumByTypeAndPeriod(from.toString(), to.toString())
-            .executeAsList()
-            .associate {
+    override fun getSumByType(): Flow<Map<TransactionType, Long>> = queries
+        .sumByType()
+        .asFlow()
+        .mapToList(Dispatchers.IO)
+        .map { rows ->
+            rows.associate {
                 TransactionType.valueOf(it.type) to (it.total ?: 0L)
             }
-    }
+        }
 
-    override suspend fun getTotalCount(): Long = withContext(Dispatchers.IO) {
-        queries.totalCount().executeAsOne()
-    }
+    override fun getSumByTypeAndPeriod(
+        from: LocalDateTime,
+        to: LocalDateTime
+    ): Flow<Map<TransactionType, Long>> = queries
+        .sumByTypeAndPeriod(from.toString(), to.toString())
+        .asFlow()
+        .mapToList(Dispatchers.IO)
+        .map { rows ->
+            rows.associate {
+                TransactionType.valueOf(it.type) to (it.total ?: 0L)
+            }
+        }
 
-    override suspend fun getCategoryStats(type: TransactionType): List<CategoryStat> =
-        withContext(Dispatchers.IO) {
-            val counts = queries.countByCategory().executeAsList()
-            val avgs = queries.avgAmountByCategory(type.name).executeAsList()
-            val lastDates = queries.lastDateByCategory().executeAsList()
+    override fun getTotalCount(): Flow<Long> = queries
+        .totalCount()
+        .asFlow()
+        .mapToOne(Dispatchers.IO)
 
+    override fun getCategoryStats(type: TransactionType): Flow<List<CategoryStat>> {
+        val countsFlow = queries.countByCategory().asFlow().mapToList(Dispatchers.IO)
+        val avgsFlow = queries.avgAmountByCategory(type.name).asFlow().mapToList(Dispatchers.IO)
+        val lastDatesFlow = queries.lastDateByCategory().asFlow().mapToList(Dispatchers.IO)
+
+        return combine(countsFlow, avgsFlow, lastDatesFlow) { counts, avgs, lastDates ->
             val avgMap = avgs.associate {
                 it.category_id to (it.avg_amount ?: 0L)
             }
@@ -106,6 +121,7 @@ class TransactionRepositoryImpl(
                 )
             }
         }
+    }
 
     private fun com.financer.core.data.db.TransactionEntity.toDomain(): Transaction {
         return Transaction(

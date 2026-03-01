@@ -1,16 +1,16 @@
 package com.financer.feature.home.domain
 
-import com.financer.core.common.coroutines.runCatchingCoroutine
 import com.financer.core.data.model.TransactionType
 import com.financer.core.data.repository.TransactionRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 internal class GetBalanceUseCase(
     private val transactionsRepository: TransactionRepository
 ) {
 
-    suspend operator fun invoke(): Result<Long> {
-        return runCatchingCoroutine {
-            val operations = transactionsRepository.getAll()
+    operator fun invoke(): Flow<Long> {
+        return transactionsRepository.getAll().map { operations ->
             var total = 0L
             operations.forEach {
                 when (it.type) {

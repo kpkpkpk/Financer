@@ -2,6 +2,7 @@ package com.financer.core.data.repository
 
 import com.financer.core.data.model.Transaction
 import com.financer.core.data.model.TransactionType
+import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDateTime
 
 data class CategoryStat(
@@ -12,15 +13,15 @@ data class CategoryStat(
 )
 
 interface TransactionRepository {
-    suspend fun getAll(): List<Transaction>
-    suspend fun getByPeriod(from: LocalDateTime, to: LocalDateTime): List<Transaction>
-    suspend fun getByCategory(categoryId: Long): List<Transaction>
+    fun getAll(): Flow<List<Transaction>>
+    fun getByPeriod(from: LocalDateTime, to: LocalDateTime): Flow<List<Transaction>>
+    fun getByCategory(categoryId: Long): Flow<List<Transaction>>
     suspend fun getById(id: Long): Transaction?
     suspend fun insert(transaction: Transaction)
     suspend fun update(transaction: Transaction)
     suspend fun deleteById(id: Long)
-    suspend fun getSumByType(): Map<TransactionType, Long>
-    suspend fun getSumByTypeAndPeriod(from: LocalDateTime, to: LocalDateTime): Map<TransactionType, Long>
-    suspend fun getTotalCount(): Long
-    suspend fun getCategoryStats(type: TransactionType): List<CategoryStat>
+    fun getSumByType(): Flow<Map<TransactionType, Long>>
+    fun getSumByTypeAndPeriod(from: LocalDateTime, to: LocalDateTime): Flow<Map<TransactionType, Long>>
+    fun getTotalCount(): Flow<Long>
+    fun getCategoryStats(type: TransactionType): Flow<List<CategoryStat>>
 }
