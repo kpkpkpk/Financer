@@ -12,16 +12,17 @@ import com.arkivanov.decompose.router.slot.activate
 import com.arkivanov.decompose.router.slot.childSlot
 import com.arkivanov.decompose.router.slot.dismiss
 import com.arkivanov.decompose.value.Value
+import com.financer.feature.main.api.MainComponent
 import kotlinx.serialization.Serializable
 
-class MainComponent(
-    componentContext: ComponentContext
-) : ComponentContext by componentContext {
+class DefaultMainComponent(
+    componentContext: ComponentContext,
+) : MainComponent, ComponentContext by componentContext {
 
     private val pagesNavigation = PagesNavigation<PagesConfig>()
     private val slotNavigation = SlotNavigation<SlotsConfig>()
 
-    val pages: Value<ChildPages<*, PagesChild>> = childPages(
+    override val pages: Value<ChildPages<*, MainComponent.PagesChild>> = childPages(
         source = pagesNavigation,
         serializer = PagesConfig.serializer(),
         initialPages = {
@@ -31,74 +32,62 @@ class MainComponent(
                     PagesConfig.Analytics,
                     PagesConfig.Settings,
                 ),
-                selectedIndex = 0
+                selectedIndex = 0,
             )
-        }
-    ) { config, context ->
+        },
+    ) { config, _ ->
         when (config) {
-            PagesConfig.Home -> PagesChild.Home()
-            PagesConfig.Analytics -> PagesChild.Analytics()
-            PagesConfig.Settings -> PagesChild.Settings()
+            PagesConfig.Home -> MainComponent.PagesChild.Home
+            PagesConfig.Analytics -> MainComponent.PagesChild.Analytics
+            PagesConfig.Settings -> MainComponent.PagesChild.Settings
         }
     }
 
-    val slots: Value<ChildSlot<*, SlotChild>> = childSlot(
+    override val slots: Value<ChildSlot<*, MainComponent.SlotChild>> = childSlot(
         source = slotNavigation,
         serializer = SlotsConfig.serializer(),
         handleBackButton = true,
-    ) { config, context ->
+    ) { config, _ ->
         when (config) {
-            SlotsConfig.Filter -> SlotChild.Filter()
-            SlotsConfig.Transaction -> SlotChild.Transaction()
+            SlotsConfig.Filter -> MainComponent.SlotChild.Filter
+            SlotsConfig.Transaction -> MainComponent.SlotChild.Transaction
         }
     }
 
-
-    fun selectPage(index: Int) {
+    override fun selectPage(index: Int) {
         pagesNavigation.select(index)
     }
 
-    fun openFilterScreen() {
+    override fun openFilterScreen() {
         slotNavigation.activate(SlotsConfig.Filter)
     }
 
-    fun openTransactionScreen() {
+    override fun openTransactionScreen() {
         slotNavigation.activate(SlotsConfig.Transaction)
     }
 
-    fun closeSlot() {
+    override fun closeSlot() {
         slotNavigation.dismiss()
-    }
-
-    sealed class PagesChild {
-        class Home : PagesChild()
-        class Analytics : PagesChild()
-        class Settings : PagesChild()
-    }
-
-    sealed class SlotChild {
-        class Transaction : SlotChild()
-        class Filter : SlotChild()
     }
 
     @Serializable
     private sealed interface PagesConfig {
         @Serializable
-        object Home : PagesConfig
+        data object Home : PagesConfig
 
         @Serializable
-        object Analytics : PagesConfig
+        data object Analytics : PagesConfig
 
         @Serializable
-        object Settings : PagesConfig
+        data object Settings : PagesConfig
     }
 
     @Serializable
     private sealed interface SlotsConfig {
         @Serializable
-        object Transaction : SlotsConfig
+        data object Transaction : SlotsConfig
 
         @Serializable
-        object Filter : SlotsConfig
+        data object Filter : SlotsConfig
     }
 }

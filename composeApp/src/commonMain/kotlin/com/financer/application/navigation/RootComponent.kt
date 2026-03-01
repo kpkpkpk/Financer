@@ -7,7 +7,8 @@ import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import com.financer.feature.main.navigation.MainComponent
+import com.financer.feature.main.api.MainComponent
+import com.financer.feature.main.api.MainComponentFactory
 import com.financer.feature.onboarding.domain.CompleteOnboardingUseCase
 import com.financer.feature.onboarding.domain.IsOnboardingCompletedUseCase
 import com.financer.feature.onboarding.presentation.OnboardingComponent
@@ -16,7 +17,8 @@ import kotlinx.serialization.Serializable
 class RootComponent(
     componentContext: ComponentContext,
     private val storeFactory: StoreFactory,
-    private val isOnboardingCompleted: IsOnboardingCompletedUseCase,
+    private val mainComponentFactory: MainComponentFactory,
+    isOnboardingCompleted: IsOnboardingCompletedUseCase,
     private val completeOnboarding: CompleteOnboardingUseCase,
 ) : ComponentContext by componentContext {
 
@@ -41,7 +43,7 @@ class RootComponent(
                 )
             )
 
-            is Config.Main -> Child.Main(MainComponent(childContext))
+            is Config.Main -> Child.Main(mainComponentFactory.create(childContext))
         }
 
     sealed class Child {

@@ -17,7 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.Child
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import com.financer.feature.main.navigation.MainComponent
+import com.financer.feature.main.api.MainComponent
 import org.jetbrains.compose.resources.painterResource
 
 @Composable

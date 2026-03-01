@@ -1,9 +1,9 @@
 package com.financer.feature.main.presentation
 
-import financer.feature.main.generated.resources.Res
-import financer.feature.main.generated.resources.chart_line
-import financer.feature.main.generated.resources.home
-import financer.feature.main.generated.resources.settings
+import financer.feature.main_impl.generated.resources.Res
+import financer.feature.main_impl.generated.resources.chart_line
+import financer.feature.main_impl.generated.resources.home
+import financer.feature.main_impl.generated.resources.settings
 import org.jetbrains.compose.resources.DrawableResource
 
 enum class MainTabs(

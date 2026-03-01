@@ -10,7 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import com.financer.feature.main.navigation.MainComponent
+import com.financer.feature.main.api.MainComponent
 
 @Composable
 fun MainScreen(mainComponent: MainComponent) {
