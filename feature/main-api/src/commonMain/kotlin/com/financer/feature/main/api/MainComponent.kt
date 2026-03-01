@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.pages.ChildPages
 import com.arkivanov.decompose.router.slot.ChildSlot
 import com.arkivanov.decompose.value.Value
+import com.financer.feature.home.api.HomeComponent
 
 interface MainComponent {
     val pages: Value<ChildPages<*, PagesChild>>
@@ -15,7 +16,7 @@ interface MainComponent {
     fun closeSlot()
 
     sealed interface PagesChild {
-        data object Home : PagesChild
+        data class Home(val component: HomeComponent) : PagesChild
         data object Analytics : PagesChild
         data object Settings : PagesChild
     }

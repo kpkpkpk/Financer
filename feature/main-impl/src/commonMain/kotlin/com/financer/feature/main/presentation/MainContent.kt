@@ -17,11 +17,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.Child
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.financer.feature.home.api.HomeScreenProvider
 import com.financer.feature.main.api.MainComponent
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun MainContent(mainComponent: MainComponent, modifier: Modifier = Modifier) {
+fun MainContent(
+    mainComponent: MainComponent,
+    homeScreenProvider: HomeScreenProvider,
+    modifier: Modifier = Modifier,
+) {
     val pagesState by mainComponent.pages.subscribeAsState()
 
     Scaffold(
@@ -59,8 +64,10 @@ fun MainContent(mainComponent: MainComponent, modifier: Modifier = Modifier) {
             val selectedChild = pagesState.items.getOrNull(pagesState.selectedIndex)
 
             if (selectedChild is Child.Created) {
-                when (selectedChild.instance) {
-                    is MainComponent.PagesChild.Home -> PlaceholderPage("Главная")
+                when (val child = selectedChild.instance) {
+                    is MainComponent.PagesChild.Home -> homeScreenProvider.Screen(
+                        component = child.component
+                    )
                     is MainComponent.PagesChild.Analytics -> PlaceholderPage("Инсайты")
                     is MainComponent.PagesChild.Settings -> PlaceholderPage("Настройки")
                 }
@@ -82,3 +89,4 @@ private fun PlaceholderPage(title: String) {
         )
     }
 }
+

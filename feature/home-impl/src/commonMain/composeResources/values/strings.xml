@@ -1,0 +1,10 @@
+<resources>
+    <string name="home_balance">Баланс</string>
+    <string name="home_filter">Фильтр</string>
+    <string name="home_income">Доход</string>
+    <string name="home_expense">Расход</string>
+    <string name="home_empty_state">Добавьте первую транзакцию</string>
+    <string name="home_period_this_month">Этот месяц</string>
+    <string name="home_unknown_category">Без категории</string>
+</resources>
+

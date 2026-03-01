@@ -39,6 +39,7 @@ kotlin {
             implementation(projects.feature.onboarding)
             implementation(projects.feature.mainImpl)
             implementation(projects.feature.mainApi)
+            implementation(projects.feature.homeImpl)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
@@ -51,6 +52,7 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)
+            implementation(libs.koin.compose)
             implementation(libs.mvikotlin)
             implementation(libs.mvikotlin.main)
         }
