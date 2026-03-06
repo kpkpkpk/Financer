@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import financer.feature.home_impl.generated.resources.Res
+import financer.feature.home_impl.generated.resources.filter
 import financer.feature.home_impl.generated.resources.home_balance
 import financer.feature.home_impl.generated.resources.home_empty_state
 import financer.feature.home_impl.generated.resources.home_expense
@@ -64,6 +65,9 @@ import financer.feature.home_impl.generated.resources.home_income
 import financer.feature.home_impl.generated.resources.home_period_this_month
 import financer.feature.home_impl.generated.resources.home_unknown_category
 import financer.feature.home_impl.generated.resources.home_add_btn
+import financer.feature.home_impl.generated.resources.search
+import financer.feature.home_impl.generated.resources.square_rounded_add
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
@@ -79,7 +83,6 @@ private const val ActionsId = "actions"
 private const val ExpandedLabelId = "expandedLabel"
 private const val ExpandedAmountId = "expandedAmount"
 private const val CollapsedTitleId = "collapsedTitle"
-private const val PeriodChipId = "periodChip"
 private const val SummaryCardId = "summaryCard"
 
 @Stable
@@ -200,7 +203,7 @@ internal fun HomeScreen(
                     is HomeListItem.DateHeader -> {
                         Text(
                             text = item.title.resolve(),
-                            style = MaterialTheme.typography.labelLarge,
+                            style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -242,7 +245,6 @@ internal fun HomeScreen(
             balance = headerUiState.formattedBalance,
             income = headerUiState.formattedIncome,
             expense = headerUiState.formattedExpense,
-            periodTitle = periodTitle,
             onFilterClick = headerComponent::onFilterClicked,
             modifier = Modifier
                 .fillMaxWidth()
@@ -254,8 +256,19 @@ internal fun HomeScreen(
             modifier = Modifier.padding(bottom = 4.dp).align(Alignment.BottomCenter),
             onClick = { addTransactionButtonComponent.onAddTransactionClicked() },
             elevation = FloatingActionButtonDefaults.elevation(1.dp),
-            text = { Text(stringResource(Res.string.home_add_btn)) },
-            icon = { Box(Modifier.size(24.dp)) }
+            text = {
+                Text(
+                    stringResource(Res.string.home_add_btn),
+                    fontSize = 16.sp
+                )
+            },
+            icon = {
+                Icon(
+                    painter = painterResource(Res.drawable.square_rounded_add),
+                    modifier = Modifier.size(24.dp),
+                    contentDescription = null,
+                )
+            }
         )
     }
 }
@@ -266,7 +279,6 @@ private fun CollapsingHeader(
     balance: String,
     income: String,
     expense: String,
-    periodTitle: String,
     onFilterClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -283,11 +295,13 @@ private fun CollapsingHeader(
         Layout(
             content = {
                 HeaderSquareAction(
+                    resource = Res.drawable.filter,
                     onClick = onFilterClick,
                     modifier = Modifier.layoutId(NavIconId),
                 )
 
                 HeaderSquareAction(
+                    resource = Res.drawable.search,
                     onClick = {},
                     modifier = Modifier.layoutId(ActionsId),
                 )
@@ -316,12 +330,6 @@ private fun CollapsingHeader(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.layoutId(CollapsedTitleId),
-                )
-
-                PeriodChip(
-                    text = periodTitle,
-                    onClick = onFilterClick,
-                    modifier = Modifier.layoutId(PeriodChipId),
                 )
 
                 SummaryCard(
@@ -364,10 +372,6 @@ private fun CollapsingHeader(
                     )
                 )
 
-            // Measure period chip and summary card
-            val periodChipPlaceable = measurables.first { it.layoutId == PeriodChipId }
-                .measure(constraints.copy(minWidth = 0, minHeight = 0))
-
             val summaryCardMaxWidth =
                 (constraints.maxWidth - 2 * SummaryCardPadding.toPx()).roundToInt()
             val summaryCardPlaceable = measurables.first { it.layoutId == SummaryCardId }
@@ -401,7 +405,7 @@ private fun CollapsingHeader(
 
                 // Label + chip group: centered together at 24% of expanded height
                 val chipGap = 6.dp.toPx()
-                val groupWidth = expandedLabelPlaceable.width + chipGap + periodChipPlaceable.width
+                val groupWidth = expandedLabelPlaceable.width + chipGap
                 val groupStartX = (constraints.maxWidth - groupWidth) / 2
                 val labelY =
                     (expandedHeightPx * 0.24f - expandedLabelPlaceable.height / 2).roundToInt()
@@ -409,14 +413,6 @@ private fun CollapsingHeader(
                 expandedLabelPlaceable.placeRelativeWithLayer(
                     x = groupStartX.roundToInt(),
                     y = labelY,
-                    layerBlock = { alpha = expandedAlpha }
-                )
-
-                val chipX = groupStartX + expandedLabelPlaceable.width + chipGap
-                val chipY = expandedHeightPx * 0.24f - periodChipPlaceable.height / 2
-                periodChipPlaceable.placeRelativeWithLayer(
-                    x = chipX.roundToInt(),
-                    y = chipY.roundToInt(),
                     layerBlock = { alpha = expandedAlpha }
                 )
 
@@ -450,61 +446,19 @@ private fun CollapsingHeader(
 }
 
 @Composable
-private fun PeriodChip(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colorScheme.background.copy(alpha = 0.45f))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 3.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-        )
-        Spacer(modifier = Modifier.width(6.dp))
-        Box(
-            modifier = Modifier
-                .size(10.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    shape = RoundedCornerShape(2.dp),
-                )
-        )
-    }
-}
-
-@Composable
 private fun HeaderSquareAction(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    resource: DrawableResource,
 ) {
-    Box(
+    Icon(
+        painter = painterResource(resource),
+        contentDescription = null,
         modifier = modifier
             .size(24.dp)
             .clip(RoundedCornerShape(6.dp))
             .clickable(onClick = onClick)
-            .background(
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f),
-                shape = RoundedCornerShape(6.dp),
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(10.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    shape = RoundedCornerShape(2.dp),
-                )
-        )
-    }
+    )
 }
 
 @Composable
@@ -578,8 +532,8 @@ private fun TransactionRow(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
