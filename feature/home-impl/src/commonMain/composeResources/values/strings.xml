@@ -6,5 +6,23 @@
     <string name="home_empty_state">Добавьте первую транзакцию</string>
     <string name="home_period_this_month">Этот месяц</string>
     <string name="home_unknown_category">Без категории</string>
+    <string name="home_add_btn">Добавить</string>
+
+    <string name="home_date_today">Сегодня</string>
+    <string name="home_date_yesterday">Вчера</string>
+
+    <string name="home_month_genitive_1">января</string>
+    <string name="home_month_genitive_2">февраля</string>
+    <string name="home_month_genitive_3">марта</string>
+    <string name="home_month_genitive_4">апреля</string>
+    <string name="home_month_genitive_5">мая</string>
+    <string name="home_month_genitive_6">июня</string>
+    <string name="home_month_genitive_7">июля</string>
+    <string name="home_month_genitive_8">августа</string>
+    <string name="home_month_genitive_9">сентября</string>
+    <string name="home_month_genitive_10">октября</string>
+    <string name="home_month_genitive_11">ноября</string>
+    <string name="home_month_genitive_12">декабря</string>
+
 </resources>
 

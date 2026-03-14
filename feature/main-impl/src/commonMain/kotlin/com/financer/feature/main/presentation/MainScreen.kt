@@ -1,5 +1,10 @@
 package com.financer.feature.main.presentation
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,39 +22,46 @@ import org.koin.compose.koinInject
 
 @Composable
 fun MainScreen(mainComponent: MainComponent) {
-        val homeScreenProvider = koinInject<HomeScreenProvider>()
+    val homeScreenProvider = koinInject<HomeScreenProvider>()
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            MainContent(
-                mainComponent = mainComponent,
-                homeScreenProvider = homeScreenProvider
-            )
+    Box(modifier = Modifier.fillMaxSize()) {
+        MainContent(
+            mainComponent = mainComponent,
+            homeScreenProvider = homeScreenProvider
+        )
 
-            val slotState by mainComponent.slots.subscribeAsState()
-            slotState.child?.let { child ->
-                when (child.instance) {
-                    is MainComponent.SlotChild.Transaction -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.background),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text("Добавление транзакции")
-                        }
-                    }
-
-                    is MainComponent.SlotChild.Filter -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.background),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text("Фильтр")
-                        }
+        val slotState by mainComponent.slots.subscribeAsState()
+        AnimatedContent(
+            targetState = slotState.child,
+            transitionSpec = {
+                slideInVertically { it } togetherWith slideOutVertically { it }
+            }
+        ) { child ->
+            when (child?.instance) {
+                is MainComponent.SlotChild.Transaction -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("Добавление транзакции")
                     }
                 }
+
+                is MainComponent.SlotChild.Filter -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("Фильтр")
+                    }
+                }
+
+                else -> Unit
             }
         }
+    }
 }

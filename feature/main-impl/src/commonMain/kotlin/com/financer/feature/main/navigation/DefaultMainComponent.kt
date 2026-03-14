@@ -37,10 +37,11 @@ class DefaultMainComponent(
                 selectedIndex = 0,
             )
         },
-    ) { config, _ ->
+    ) { config, childContext ->
         when (config) {
             PagesConfig.Home -> MainComponent.PagesChild.Home(
                 homeComponentFactory.create(
+                    componentContext = childContext,
                     onOpenFilter = { openFilterScreen() },
                     onOpenTransaction = { openTransactionScreen() }
                 )

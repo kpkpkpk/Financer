@@ -2,28 +2,25 @@ package com.financer.feature.home.api
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.arkivanov.decompose.ComponentContext
 
 interface HomeComponent {
-    fun onLoadData()
-    fun onTransactionClicked(transactionId: Long)
-    fun onDeleteRequested(transactionId: Long)
-    fun onDeleteConfirmed(transactionId: Long)
-    fun onFilterClicked()
     fun onDestroy()
 }
 
 fun interface HomeComponentFactory {
     fun create(
-        onOpenTransaction: (Long) -> Unit,
+        componentContext: ComponentContext,
+        onOpenTransaction: (Long?) -> Unit,
         onOpenFilter: () -> Unit,
     ): HomeComponent
 }
 
 interface HomeScreenProvider {
+
     @Composable
-    fun Screen(
+    fun provideScreen(
         component: HomeComponent,
-        modifier: Modifier = Modifier,
+        modifier: Modifier,
     )
 }
-

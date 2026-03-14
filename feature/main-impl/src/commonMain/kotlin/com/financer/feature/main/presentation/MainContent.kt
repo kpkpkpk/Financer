@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.Child
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.financer.feature.home.api.HomeScreenProvider
@@ -33,6 +34,7 @@ fun MainContent(
         modifier = modifier,
         bottomBar = {
             NavigationBar(
+                tonalElevation = 2.dp,
                 containerColor = MaterialTheme.colorScheme.surface,
             ) {
                 MainTabs.entries.forEach { tab ->
@@ -65,9 +67,11 @@ fun MainContent(
 
             if (selectedChild is Child.Created) {
                 when (val child = selectedChild.instance) {
-                    is MainComponent.PagesChild.Home -> homeScreenProvider.Screen(
-                        component = child.component
+                    is MainComponent.PagesChild.Home -> homeScreenProvider.provideScreen(
+                        component = child.component,
+                        modifier = Modifier,
                     )
+
                     is MainComponent.PagesChild.Analytics -> PlaceholderPage("Инсайты")
                     is MainComponent.PagesChild.Settings -> PlaceholderPage("Настройки")
                 }

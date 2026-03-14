@@ -1,12 +1,12 @@
 package com.financer.feature.home.presentation
 
 import com.arkivanov.mvikotlin.core.store.Reducer
+import com.arkivanov.mvikotlin.core.store.SimpleBootstrapper
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import com.financer.core.data.model.Category
 import com.financer.core.data.model.Transaction
-import com.financer.core.data.model.TransactionType
 import com.financer.core.data.repository.CategoryRepository
 import com.financer.feature.home.domain.DeleteTransactionUseCase
 import com.financer.feature.home.domain.GetBalanceUseCase
@@ -14,13 +14,14 @@ import com.financer.feature.home.domain.GetTotalSumByTypeInPeriodUseCase
 import com.financer.feature.home.domain.GetTransactionsUseCase
 import com.financer.feature.home.presentation.HomeStore.Intent
 import com.financer.feature.home.presentation.HomeStore.Label
+import com.financer.feature.home.presentation.HomeStore.Label.*
 import com.financer.feature.home.presentation.HomeStore.Period
 import com.financer.feature.home.presentation.HomeStore.State
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
-class HomeStoreFactory(
+internal class HomeStoreFactory(
     private val storeFactory: StoreFactory,
     private val getBalanceUseCase: GetBalanceUseCase,
     private val getTransactionsUseCase: GetTransactionsUseCase,
@@ -33,32 +34,44 @@ class HomeStoreFactory(
         by storeFactory.create(
             name = "HomeStore",
             initialState = State(),
+            bootstrapper = SimpleBootstrapper(Action.Init),
             executorFactory = { Executor() },
             reducer = ReducerImpl
         ) {}
+
+    private sealed interface Action {
+        data object Init : Action
+    }
 
     private sealed interface Msg {
         data class DataLoaded(
             val balance: Long,
             val income: Long,
             val expense: Long,
-            val items: List<HomeStore.ListItem>,
+            val transactions: List<Transaction>,
+            val categories: Map<Long, Category>,
         ) : Msg
     }
 
-    private inner class Executor : CoroutineExecutor<Intent, Nothing, State, Msg, Label>() {
+    private inner class Executor : CoroutineExecutor<Intent, Action, State, Msg, Label>() {
         private var observeJob: Job? = null
+
+        override fun executeAction(action: Action) {
+            when (action) {
+                Action.Init -> observeData(state().period)
+            }
+        }
 
         override fun executeIntent(intent: Intent) {
             when (intent) {
-                Intent.LoadData -> observeData(state().period)
-                is Intent.TransactionClicked -> publish(Label.OpenTransaction(intent.transactionId))
+                is Intent.TransactionClicked -> publish(OpenTransactionScreen(intent.transactionId))
                 is Intent.DeleteRequested -> Unit
                 is Intent.DeleteConfirmed -> {
                     scope.launch { deleteTransactionUseCase(intent.transactionId) }
                 }
 
                 Intent.FilterClicked -> publish(Label.OpenFilter)
+                Intent.AddTransactionClicked -> publish(Label.OpenTransactionScreen(null))
             }
         }
 
@@ -75,7 +88,8 @@ class HomeStoreFactory(
                         balance = balance,
                         income = summary.incomeSum,
                         expense = summary.expenseSum,
-                        items = transactions.toUiItems(categoriesById)
+                        transactions = transactions,
+                        categories = categoriesById,
                     )
                 }.collect { msg ->
                     dispatch(msg)
@@ -91,42 +105,9 @@ class HomeStoreFactory(
                     balance = msg.balance,
                     income = msg.income,
                     expense = msg.expense,
-                    items = msg.items,
+                    transactions = msg.transactions,
+                    categories = msg.categories,
                 )
             }
     }
-}
-
-private fun List<Transaction>.toUiItems(
-    categoriesById: Map<Long, Category>
-): List<HomeStore.ListItem> {
-    if (isEmpty()) {
-        return listOf(HomeStore.ListItem.EmptyState)
-    }
-
-    return sortedByDescending { it.date }
-        .groupBy { it.date.date }
-        .entries
-        .sortedByDescending { it.key }
-        .flatMap { (date, transactions) ->
-            buildList {
-                add(HomeStore.ListItem.DateHeader(date = date, title = date.toHeaderLabel()))
-
-                transactions.forEach { transaction ->
-                    val category = categoriesById[transaction.categoryId]
-                    add(
-                        HomeStore.ListItem.Transaction(
-                            item = HomeStore.TransactionItem(
-                                id = transaction.id,
-                                categoryEmoji = category?.emoji ?: "*",
-                                categoryName = category?.name,
-                                time = transaction.date.toTimeLabel(),
-                                amount = transaction.amount,
-                                isIncome = transaction.type == TransactionType.INCOME
-                            )
-                        )
-                    )
-                }
-            }
-        }
 }
