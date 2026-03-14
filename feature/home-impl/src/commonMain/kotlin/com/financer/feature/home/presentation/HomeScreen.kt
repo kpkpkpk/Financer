@@ -57,6 +57,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import com.arkivanov.mvikotlin.extensions.coroutines.labels
+import com.financer.core.ui.theme.FinancerColors
+import com.financer.core.ui.theme.FinancerTheme
 import financer.feature.home_impl.generated.resources.Res
 import financer.feature.home_impl.generated.resources.filter
 import financer.feature.home_impl.generated.resources.home_balance
@@ -498,7 +500,7 @@ private fun SummaryCard(
                 Text(
                     text = income,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.SemiBold,
                 )
             }
@@ -522,7 +524,7 @@ private fun SummaryCard(
                 Text(
                     text = expense,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.error,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.SemiBold,
                 )
             }
@@ -578,9 +580,9 @@ private fun TransactionRow(
                 text = transaction.formattedAmount,
                 style = MaterialTheme.typography.titleMedium,
                 color = if (transaction.isIncome) {
-                    MaterialTheme.colorScheme.primary
+                    FinancerTheme.colors.green
                 } else {
-                    MaterialTheme.colorScheme.error
+                    MaterialTheme.colorScheme.onSurface
                 }
             )
         }
