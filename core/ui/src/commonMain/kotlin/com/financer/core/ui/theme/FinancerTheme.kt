@@ -18,6 +18,7 @@ private val Peach = Color(0xFFF0C0A0)
 private val Terracotta = Color(0xFF8B4A4A)
 
 private val Green = Color(0xFF199201)
+private val Gray = Color(0xFFCCD0CC)
 
 @Immutable
 data class FinancerColors(
@@ -30,6 +31,7 @@ data class FinancerColors(
     val peach: Color = Peach,
     val terracotta: Color = Terracotta,
     val green: Color = Green,
+    val gray: Color = Gray,
 )
 
 internal val LocalFinancerColors = staticCompositionLocalOf { FinancerColors() }

@@ -9,6 +9,7 @@ internal sealed interface HomeListItem {
     data class DateHeader(
         override val key: String,
         val title: TextValue,
+        val totalSum: TextValue
     ) : HomeListItem
 
     data class Transaction(

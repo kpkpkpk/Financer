@@ -57,10 +57,18 @@ internal class HomeUiStateMapper {
             .sortedByDescending { it.key }
             .flatMap { (date, transactions) ->
                 buildList {
+                    val totalByDate = transactions.sumOf { it.amount }
                     add(
                         HomeListItem.DateHeader(
                             key = "$date",
                             title = formatDateHeader(date, today),
+                            totalSum = TextValue.Raw(
+                                text = if (totalByDate > 0) {
+                                    formatSignedAmount(totalByDate)
+                                } else {
+                                    formatAmount(totalByDate)
+                                }
+                            )
                         )
                     )
                     transactions.forEach { transaction ->
@@ -71,7 +79,7 @@ internal class HomeUiStateMapper {
                                 key = "${transaction.id}",
                                 item = HomeTransactionItem(
                                     id = transaction.id,
-                                    categoryEmoji = category?.emoji ?: "*",
+                                    categoryEmoji = category?.emoji ?: "",
                                     categoryName = category?.name,
                                     time = transaction.date.formatTime(),
                                     formattedAmount = if (isIncome) {
