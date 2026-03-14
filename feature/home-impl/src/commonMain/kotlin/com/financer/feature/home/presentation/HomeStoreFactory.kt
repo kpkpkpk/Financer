@@ -14,11 +14,13 @@ import com.financer.feature.home.domain.GetTotalSumByTypeInPeriodUseCase
 import com.financer.feature.home.domain.GetTransactionsUseCase
 import com.financer.feature.home.presentation.HomeStore.Intent
 import com.financer.feature.home.presentation.HomeStore.Label
-import com.financer.feature.home.presentation.HomeStore.Label.*
 import com.financer.feature.home.presentation.HomeStore.Period
 import com.financer.feature.home.presentation.HomeStore.State
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 internal class HomeStoreFactory(
@@ -28,16 +30,18 @@ internal class HomeStoreFactory(
     private val getTotalSumByTypeInPeriodUseCase: GetTotalSumByTypeInPeriodUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val categoryRepository: CategoryRepository,
+    private val onOpenTransaction: (Long?) -> Unit,
+    private val onOpenFilter: () -> Unit,
+    private val onObserveUpEventProvider: () -> Flow<Unit>,
 ) {
 
-    fun create(): HomeStore = object : HomeStore, Store<Intent, State, Label>
-        by storeFactory.create(
-            name = "HomeStore",
-            initialState = State(),
-            bootstrapper = SimpleBootstrapper(Action.Init),
-            executorFactory = { Executor() },
-            reducer = ReducerImpl
-        ) {}
+    fun create(): HomeStore = object : HomeStore, Store<Intent, State, Label> by storeFactory.create(
+        name = "HomeStore",
+        initialState = State(),
+        bootstrapper = SimpleBootstrapper(Action.Init),
+        executorFactory = { Executor() },
+        reducer = ReducerImpl
+    ) {}
 
     private sealed interface Action {
         data object Init : Action
@@ -51,28 +55,40 @@ internal class HomeStoreFactory(
             val transactions: List<Transaction>,
             val categories: Map<Long, Category>,
         ) : Msg
+
     }
 
     private inner class Executor : CoroutineExecutor<Intent, Action, State, Msg, Label>() {
         private var observeJob: Job? = null
+        private var observeUpEventJob: Job? = null
 
         override fun executeAction(action: Action) {
             when (action) {
-                Action.Init -> observeData(state().period)
+                Action.Init -> {
+                    observeData(state().period)
+                    observeHomeUpEvent()
+                }
             }
         }
 
         override fun executeIntent(intent: Intent) {
             when (intent) {
-                is Intent.TransactionClicked -> publish(OpenTransactionScreen(intent.transactionId))
+                is Intent.TransactionClicked -> onOpenTransaction(intent.transactionId)
                 is Intent.DeleteRequested -> Unit
                 is Intent.DeleteConfirmed -> {
                     scope.launch { deleteTransactionUseCase(intent.transactionId) }
                 }
 
-                Intent.FilterClicked -> publish(Label.OpenFilter)
-                Intent.AddTransactionClicked -> publish(Label.OpenTransactionScreen(null))
+                Intent.FilterClicked -> onOpenFilter()
+                Intent.AddTransactionClicked -> onOpenTransaction(null)
             }
+        }
+
+        private fun observeHomeUpEvent() {
+            observeUpEventJob?.cancel()
+            observeUpEventJob = onObserveUpEventProvider().onEach {
+                publish(Label.ScrollFeedToUp)
+            }.launchIn(scope)
         }
 
         private fun observeData(period: Period) {

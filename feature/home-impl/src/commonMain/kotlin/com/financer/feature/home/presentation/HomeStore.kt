@@ -54,7 +54,7 @@ internal interface HomeStore : Store<HomeStore.Intent, HomeStore.State, HomeStor
     }
 
     sealed interface Label {
-        data class OpenTransactionScreen(val transactionId: Long?) : Label
-        data object OpenFilter : Label
+
+        data object ScrollFeedToUp: Label
     }
 }

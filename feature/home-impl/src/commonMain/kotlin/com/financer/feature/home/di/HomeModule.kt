@@ -29,7 +29,7 @@ val homeModule = module {
         val categoryRepository: CategoryRepository = get()
         val uiStateMapper: HomeUiStateMapper = get()
 
-        HomeComponentFactory { componentContext, onOpenTransaction, onOpenFilter ->
+        HomeComponentFactory { componentContext, onOpenTransaction, onOpenFilter, onUpEvent ->
             DefaultHomeComponent(
                 componentContext = componentContext,
                 storeFactory = storeFactory,
@@ -41,6 +41,7 @@ val homeModule = module {
                 uiStateMapper = uiStateMapper,
                 onOpenTransaction = onOpenTransaction,
                 onOpenFilter = onOpenFilter,
+                onUpEvent = onUpEvent
             )
         }
     }

@@ -3,7 +3,6 @@ package com.financer.feature.home.presentation
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.childContext
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import com.arkivanov.mvikotlin.extensions.coroutines.labels
 import com.financer.core.data.repository.CategoryRepository
 import com.financer.feature.home.api.HomeComponent
 import com.financer.feature.home.domain.DeleteTransactionUseCase
@@ -14,8 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -36,16 +34,20 @@ internal class DefaultHomeComponent(
     uiStateMapper: HomeUiStateMapper,
     private val onOpenTransaction: (Long?) -> Unit,
     private val onOpenFilter: () -> Unit,
+    private val onUpEvent: () -> Flow<Unit>,
 ) : HomeComponent, ComponentContext by componentContext {
     private val scope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
 
-    private val store = HomeStoreFactory(
+    val store = HomeStoreFactory(
         storeFactory = storeFactory,
         getBalanceUseCase = getBalanceUseCase,
         getTransactionsUseCase = getTransactionsUseCase,
         getTotalSumByTypeInPeriodUseCase = getTotalSumByTypeInPeriodUseCase,
         deleteTransactionUseCase = deleteTransactionUseCase,
-        categoryRepository = categoryRepository
+        categoryRepository = categoryRepository,
+        onOpenTransaction = onOpenTransaction,
+        onOpenFilter = onOpenFilter,
+        onObserveUpEventProvider = onUpEvent,
     ).create()
 
     val headerComponent: HomeHeaderComponent
@@ -86,17 +88,6 @@ internal class DefaultHomeComponent(
                 toolbarHeightOffsetPx = headerComponent.savedToolbarHeightOffsetPx,
             )
         }
-    }
-
-    init {
-        store.labels
-            .onEach { label ->
-                when (label) {
-                    is HomeStore.Label.OpenTransactionScreen -> onOpenTransaction(label.transactionId)
-                    HomeStore.Label.OpenFilter -> onOpenFilter()
-                }
-            }
-            .launchIn(scope)
     }
 
     override fun onDestroy() {

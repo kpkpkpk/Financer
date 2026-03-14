@@ -25,6 +25,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,12 +37,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.FloatingActionButtonElevation
 import androidx.compose.material3.Icon
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.BlendMode.Companion.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -56,17 +56,18 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
+import com.arkivanov.mvikotlin.extensions.coroutines.labels
 import financer.feature.home_impl.generated.resources.Res
 import financer.feature.home_impl.generated.resources.filter
 import financer.feature.home_impl.generated.resources.home_balance
 import financer.feature.home_impl.generated.resources.home_empty_state
 import financer.feature.home_impl.generated.resources.home_expense
 import financer.feature.home_impl.generated.resources.home_income
-import financer.feature.home_impl.generated.resources.home_period_this_month
 import financer.feature.home_impl.generated.resources.home_unknown_category
 import financer.feature.home_impl.generated.resources.home_add_btn
 import financer.feature.home_impl.generated.resources.search
 import financer.feature.home_impl.generated.resources.square_rounded_add
+import kotlinx.coroutines.flow.collect
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -151,6 +152,7 @@ private fun rememberCollapsingToolbarState(
 
 @Composable
 internal fun HomeScreen(
+    store: HomeStore,
     headerComponent: HomeHeaderComponent,
     listComponent: HomeListComponent,
     addTransactionButtonComponent: HomeAddTransactionButtonComponent,
@@ -158,11 +160,6 @@ internal fun HomeScreen(
 ) {
     val headerUiState by headerComponent.uiState.collectAsState()
     val listUiState by listComponent.uiState.collectAsState()
-
-    val periodTitle = when (headerUiState.periodPreset) {
-        HomeStore.PeriodPreset.ThisMonth -> stringResource(Res.string.home_period_this_month)
-        HomeStore.PeriodPreset.Custom -> headerUiState.periodCustomTitle
-    }
 
     val listState = rememberLazyListState(
         initialFirstVisibleItemIndex = listComponent.savedFirstVisibleItemIndex,
@@ -174,6 +171,16 @@ internal fun HomeScreen(
         canExpand = { listState.firstVisibleItemIndex <= 2 },
     )
     val currentHeaderHeight = with(LocalDensity.current) { toolbarState.currentHeightPx.toDp() }
+
+    LaunchedEffect(Unit) {
+        store.labels.collect { label ->
+            when (label) {
+                HomeStore.Label.ScrollFeedToUp -> {
+                    listState.animateScrollToItem(index = 0)
+                }
+            }
+        }
+    }
 
     DisposableEffect(listState, toolbarState) {
         onDispose {

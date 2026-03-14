@@ -11,6 +11,7 @@ internal class DefaultHomeScreenProvider : HomeScreenProvider {
     override fun provideScreen(component: HomeComponent, modifier: Modifier) {
         val defaultComponent = component as? DefaultHomeComponent ?: return
         HomeScreen(
+            store = defaultComponent.store,
             addTransactionButtonComponent = defaultComponent.addTransactionButtonComponent,
             headerComponent = defaultComponent.headerComponent,
             listComponent = defaultComponent.listComponent,

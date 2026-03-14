@@ -14,6 +14,8 @@ import com.arkivanov.decompose.router.slot.dismiss
 import com.arkivanov.decompose.value.Value
 import com.financer.feature.home.api.HomeComponentFactory
 import com.financer.feature.main.api.MainComponent
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.serialization.Serializable
 
 class DefaultMainComponent(
@@ -23,6 +25,7 @@ class DefaultMainComponent(
 
     private val pagesNavigation = PagesNavigation<PagesConfig>()
     private val slotNavigation = SlotNavigation<SlotsConfig>()
+    private val homeUpEventFlow = MutableSharedFlow<Unit>(replay = 1)
 
     override val pages: Value<ChildPages<*, MainComponent.PagesChild>> = childPages(
         source = pagesNavigation,
@@ -43,7 +46,8 @@ class DefaultMainComponent(
                 homeComponentFactory.create(
                     componentContext = childContext,
                     onOpenFilter = { openFilterScreen() },
-                    onOpenTransaction = { openTransactionScreen() }
+                    onOpenTransaction = { openTransactionScreen() },
+                    onUpEventListener = { homeUpEventFlow }
                 )
             )
 
@@ -64,6 +68,9 @@ class DefaultMainComponent(
     }
 
     override fun selectPage(index: Int) {
+        if (index == 0 && pages.value.selectedIndex == index) {
+            homeUpEventFlow.tryEmit(Unit)
+        }
         pagesNavigation.select(index)
     }
 
