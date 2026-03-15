@@ -40,6 +40,7 @@ kotlin {
             implementation(projects.feature.mainImpl)
             implementation(projects.feature.mainApi)
             implementation(projects.feature.homeImpl)
+            implementation(projects.feature.transactionImpl)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)

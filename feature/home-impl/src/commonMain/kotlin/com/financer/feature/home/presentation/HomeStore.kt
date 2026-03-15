@@ -3,10 +3,7 @@ package com.financer.feature.home.presentation
 import com.arkivanov.mvikotlin.core.store.Store
 import com.financer.core.data.model.Category
 import com.financer.core.data.model.Transaction
-import kotlin.time.Clock
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 
 internal interface HomeStore : Store<HomeStore.Intent, HomeStore.State, HomeStore.Label> {
 
@@ -24,7 +21,7 @@ internal interface HomeStore : Store<HomeStore.Intent, HomeStore.State, HomeStor
         val expense: Long = 0L,
         val transactions: List<Transaction> = emptyList(),
         val categories: Map<Long, Category> = emptyMap(),
-        val period: Period = Period.currentMonth(),
+        val period: Period? = null,
     )
 
     data class Period(
@@ -32,21 +29,7 @@ internal interface HomeStore : Store<HomeStore.Intent, HomeStore.State, HomeStor
         val end: LocalDateTime,
         val preset: PeriodPreset = PeriodPreset.Custom,
         val customTitle: String = "",
-    ) {
-        companion object {
-            fun currentMonth(): Period {
-                val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-                val periodStart = LocalDateTime(
-                    year = now.year, month = now.month, day = 1, hour = 0, minute = 0,
-                )
-                return Period(
-                    start = periodStart,
-                    end = now,
-                    preset = PeriodPreset.ThisMonth,
-                )
-            }
-        }
-    }
+    )
 
     enum class PeriodPreset {
         ThisMonth,

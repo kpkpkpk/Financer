@@ -14,13 +14,15 @@ import com.arkivanov.decompose.router.slot.dismiss
 import com.arkivanov.decompose.value.Value
 import com.financer.feature.home.api.HomeComponentFactory
 import com.financer.feature.main.api.MainComponent
+import com.financer.feature.transaction.api.TransactionComponentFactory
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.serialization.Serializable
 
 class DefaultMainComponent(
     componentContext: ComponentContext,
-    homeComponentFactory: HomeComponentFactory
+    homeComponentFactory: HomeComponentFactory,
+    transactionComponentFactory: TransactionComponentFactory,
 ) : MainComponent, ComponentContext by componentContext {
 
     private val pagesNavigation = PagesNavigation<PagesConfig>()
@@ -46,7 +48,7 @@ class DefaultMainComponent(
                 homeComponentFactory.create(
                     componentContext = childContext,
                     onOpenFilter = { openFilterScreen() },
-                    onOpenTransaction = { openTransactionScreen() },
+                    onOpenTransaction = { transactionId -> openTransactionScreen(transactionId) },
                     onUpEventListener = { homeUpEventFlow }
                 )
             )
@@ -60,10 +62,16 @@ class DefaultMainComponent(
         source = slotNavigation,
         serializer = SlotsConfig.serializer(),
         handleBackButton = true,
-    ) { config, _ ->
+    ) { config, childContext ->
         when (config) {
             SlotsConfig.Filter -> MainComponent.SlotChild.Filter
-            SlotsConfig.Transaction -> MainComponent.SlotChild.Transaction
+            is SlotsConfig.Transaction -> MainComponent.SlotChild.Transaction(
+                component = transactionComponentFactory.create(
+                    componentContext = childContext,
+                    transactionId = config.transactionId,
+                    onClose = ::closeSlot,
+                )
+            )
         }
     }
 
@@ -78,8 +86,8 @@ class DefaultMainComponent(
         slotNavigation.activate(SlotsConfig.Filter)
     }
 
-    override fun openTransactionScreen() {
-        slotNavigation.activate(SlotsConfig.Transaction)
+    override fun openTransactionScreen(transactionId: Long?) {
+        slotNavigation.activate(SlotsConfig.Transaction(transactionId))
     }
 
     override fun closeSlot() {
@@ -101,7 +109,7 @@ class DefaultMainComponent(
     @Serializable
     private sealed interface SlotsConfig {
         @Serializable
-        data object Transaction : SlotsConfig
+        data class Transaction(val transactionId: Long? = null) : SlotsConfig
 
         @Serializable
         data object Filter : SlotsConfig

@@ -5,6 +5,7 @@ import com.arkivanov.decompose.router.pages.ChildPages
 import com.arkivanov.decompose.router.slot.ChildSlot
 import com.arkivanov.decompose.value.Value
 import com.financer.feature.home.api.HomeComponent
+import com.financer.feature.transaction.api.TransactionComponent
 
 interface MainComponent {
     val pages: Value<ChildPages<*, PagesChild>>
@@ -12,7 +13,7 @@ interface MainComponent {
 
     fun selectPage(index: Int)
     fun openFilterScreen()
-    fun openTransactionScreen()
+    fun openTransactionScreen(transactionId: Long? = null)
     fun closeSlot()
 
     sealed interface PagesChild {
@@ -22,7 +23,7 @@ interface MainComponent {
     }
 
     sealed interface SlotChild {
-        data object Transaction : SlotChild
+        data class Transaction(val component: TransactionComponent) : SlotChild
         data object Filter : SlotChild
     }
 }

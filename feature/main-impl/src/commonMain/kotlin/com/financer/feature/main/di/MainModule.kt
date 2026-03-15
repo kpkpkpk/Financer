@@ -7,7 +7,11 @@ import org.koin.dsl.module
 val mainModule = module {
     single<MainComponentFactory> {
         MainComponentFactory { componentContext ->
-            DefaultMainComponent(componentContext, homeComponentFactory = get())
+            DefaultMainComponent(
+                componentContext = componentContext,
+                homeComponentFactory = get(),
+                transactionComponentFactory = get(),
+            )
         }
     }
 }

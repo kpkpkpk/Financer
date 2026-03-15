@@ -19,27 +19,29 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.core.ui)
-            implementation(projects.feature.mainApi)
-            implementation(projects.feature.homeApi)
             implementation(projects.feature.transactionApi)
+            implementation(projects.core.common)
+            implementation(projects.core.data)
+            implementation(projects.core.ui)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
             implementation(libs.compose.ui)
-            implementation(libs.compose.components.resources)
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.decompose)
             implementation(libs.decompose.extensions.compose)
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)
-            implementation(libs.koin.compose)
+            implementation(libs.kotlinx.datetime)
+            implementation(libs.mvikotlin)
+            implementation(libs.mvikotlin.main)
+            implementation(libs.mvikotlin.extensions.coroutines)
         }
     }
 }
 
 android {
-    namespace = "com.financer.feature.main.impl"
+    namespace = "com.financer.feature.transaction.impl"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()

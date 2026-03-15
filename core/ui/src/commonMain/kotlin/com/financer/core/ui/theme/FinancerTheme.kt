@@ -1,5 +1,7 @@
 package com.financer.core.ui.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -19,6 +21,10 @@ private val Terracotta = Color(0xFF8B4A4A)
 
 private val Green = Color(0xFF199201)
 private val Gray = Color(0xFFCCD0CC)
+private val Night = Color(0xFF0F1226)
+private val NightSurface = Color(0xFF161A32)
+private val NightVariant = Color(0xFF222844)
+private val NightText = Color(0xFFF3F5FF)
 
 @Immutable
 data class FinancerColors(
@@ -59,6 +65,29 @@ private val FinancerColorScheme = lightColorScheme(
     onError = Color.White,
 )
 
+private val FinancerDarkColorScheme = darkColorScheme(
+    primary = SoftBlue,
+    onPrimary = DarkNavy,
+    primaryContainer = Color(0xFF2C385F),
+    onPrimaryContainer = NightText,
+    secondary = Pink,
+    onSecondary = DarkNavy,
+    secondaryContainer = Color(0xFF5D3A52),
+    onSecondaryContainer = NightText,
+    tertiary = Lavender,
+    onTertiary = DarkNavy,
+    tertiaryContainer = Color(0xFF4A4365),
+    onTertiaryContainer = NightText,
+    background = Night,
+    onBackground = NightText,
+    surface = NightSurface,
+    onSurface = NightText,
+    surfaceVariant = NightVariant,
+    onSurfaceVariant = Color(0xFFD5D9F0),
+    error = Color(0xFFFFB4AB),
+    onError = Color(0xFF690005),
+)
+
 object FinancerTheme {
     val colors: FinancerColors
         @Composable get() = LocalFinancerColors.current
@@ -66,11 +95,13 @@ object FinancerTheme {
 
 @Composable
 fun FinancerTheme(content: @Composable () -> Unit) {
+    val isDarkTheme = isSystemInDarkTheme()
+
     CompositionLocalProvider(
         LocalFinancerColors provides FinancerColors(),
     ) {
         MaterialTheme(
-            colorScheme = FinancerColorScheme,
+            colorScheme = if (isDarkTheme) FinancerDarkColorScheme else FinancerColorScheme,
             content = content,
         )
     }

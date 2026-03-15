@@ -6,9 +6,10 @@ import com.financer.core.data.di.coreDataModule
 import com.financer.feature.home.di.homeModule
 import com.financer.feature.main.di.mainModule
 import com.financer.feature.onboarding.di.onboardingModule
+import com.financer.feature.transaction.di.transactionModule
 import org.koin.dsl.module
 
 val appModule = module {
-    includes(coreDataModule, onboardingModule, homeModule, mainModule)
+    includes(coreDataModule, onboardingModule, homeModule, mainModule, transactionModule)
     single<StoreFactory> { DefaultStoreFactory() }
 }

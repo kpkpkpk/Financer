@@ -32,8 +32,8 @@ internal class HomeUiStateMapper {
             formattedBalance = formatAmount(state.balance),
             formattedIncome = formatAmount(state.income),
             formattedExpense = formatAmount(state.expense),
-            periodPreset = state.period.preset,
-            periodCustomTitle = state.period.customTitle,
+            periodPreset = state.period?.preset ?: HomeStore.PeriodPreset.Custom,
+            periodCustomTitle = state.period?.customTitle.orEmpty(),
         )
     }
 
@@ -57,7 +57,13 @@ internal class HomeUiStateMapper {
             .sortedByDescending { it.key }
             .flatMap { (date, transactions) ->
                 buildList {
-                    val totalByDate = transactions.sumOf { it.amount }
+                    val totalByDate = transactions.sumOf {
+                        if(it.type == TransactionType.INCOME) {
+                            it.amount
+                        }else{
+                            -it.amount
+                        }
+                    }
                     add(
                         HomeListItem.DateHeader(
                             key = "$date",

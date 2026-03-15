@@ -3,6 +3,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.composeCompiler)
 }
 
 kotlin {
@@ -16,15 +18,15 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.feature.homeApi)
-            implementation(projects.feature.transactionApi)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.ui)
             implementation(libs.decompose)
         }
     }
 }
 
 android {
-    namespace = "com.financer.feature.main.api"
+    namespace = "com.financer.feature.transaction.api"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()

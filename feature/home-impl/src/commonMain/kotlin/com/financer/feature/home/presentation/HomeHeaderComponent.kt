@@ -15,7 +15,7 @@ internal data class HomeHeaderUiState(
     val formattedBalance: String = "",
     val formattedIncome: String = "",
     val formattedExpense: String = "",
-    val periodPreset: HomeStore.PeriodPreset = HomeStore.PeriodPreset.ThisMonth,
+    val periodPreset: HomeStore.PeriodPreset = HomeStore.PeriodPreset.Custom,
     val periodCustomTitle: String = "",
 )
 
