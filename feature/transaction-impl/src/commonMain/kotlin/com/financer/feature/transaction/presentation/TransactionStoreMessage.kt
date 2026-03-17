@@ -2,7 +2,6 @@ package com.financer.feature.transaction.presentation
 
 import com.financer.core.data.model.Category
 import com.financer.core.data.model.TransactionType
-import kotlinx.datetime.LocalDateTime
 
 internal sealed interface TransactionStoreMessage {
     data class InitialDataLoaded(
@@ -10,7 +9,7 @@ internal sealed interface TransactionStoreMessage {
         val amountInput: String,
         val type: TransactionType,
         val selectedCategory: Category?,
-        val date: LocalDateTime,
+        val dateInput: String,
         val note: String,
         val topCategories: List<Category>,
         val allCategories: List<Category>,
@@ -29,7 +28,7 @@ internal sealed interface TransactionStoreMessage {
     ) : TransactionStoreMessage
 
     data class CategoryChanged(val selectedCategory: Category?) : TransactionStoreMessage
-    data class DateChanged(val date: LocalDateTime) : TransactionStoreMessage
+    data class DateInputChanged(val dateInput: String) : TransactionStoreMessage
     data class NoteChanged(val note: String) : TransactionStoreMessage
     data class SavingChanged(val isSaving: Boolean) : TransactionStoreMessage
 }

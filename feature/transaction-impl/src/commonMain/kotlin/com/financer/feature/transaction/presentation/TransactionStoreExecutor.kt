@@ -45,8 +45,9 @@ internal class TransactionStoreExecutor(
                 dispatch(TransactionStoreMessage.CategoryChanged(selectedCategory))
             }
 
-            is TransactionStore.Intent.DateChanged -> {
-                dispatch(TransactionStoreMessage.DateChanged(intent.value))
+            is TransactionStore.Intent.DateInputChanged -> {
+                val filtered = intent.value.filter { it.isDigit() }.take(8)
+                dispatch(TransactionStoreMessage.DateInputChanged(filtered))
             }
 
             is TransactionStore.Intent.NoteChanged -> {
@@ -97,6 +98,8 @@ internal class TransactionStoreExecutor(
     private fun handleConfirm() {
         if (state().isSaving) return
 
+        val date = digitsToDateTime(state().dateInput) ?: return
+
         scope.launch {
             dispatch(TransactionStoreMessage.SavingChanged(true))
             when (
@@ -105,7 +108,7 @@ internal class TransactionStoreExecutor(
                     type = state().type,
                     amount = amountInputToKopecks(state().amountInput),
                     categoryId = state().selectedCategory?.id,
-                    date = state().date,
+                    date = date,
                     note = state().note,
                 )
             ) {
@@ -126,6 +129,7 @@ internal class TransactionStoreExecutor(
             allCategories.firstOrNull { it.id == categoryId }
         }
         val amountInput = transaction?.amount?.let(::formatAmountInput).orEmpty()
+        val dateInput = transaction?.date?.let(::dateTimeToDigits) ?: currentDateDigits()
 
         dispatch(
             TransactionStoreMessage.InitialDataLoaded(
@@ -133,7 +137,7 @@ internal class TransactionStoreExecutor(
                 amountInput = amountInput,
                 type = resolvedType,
                 selectedCategory = selectedCategory,
-                date = transaction?.date ?: TransactionStore.State().date,
+                dateInput = dateInput,
                 note = transaction?.note.orEmpty(),
                 topCategories = resolveTopCategories(resolvedType, amountInput),
                 allCategories = allCategories,

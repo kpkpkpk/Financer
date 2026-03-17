@@ -1,114 +1,147 @@
 package com.financer.feature.transaction.presentation
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.material3.Icon
 import androidx.compose.ui.unit.dp
-import com.arkivanov.mvikotlin.extensions.coroutines.stateFlow
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.arkivanov.decompose.router.slot.ChildSlot
+import com.arkivanov.decompose.value.Value
 import com.financer.core.data.model.Category
 import com.financer.core.data.model.TransactionType
-import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.number
-import kotlinx.datetime.toInstant
-import kotlinx.datetime.toLocalDateTime
+import financer.core.ui.generated.resources.arrow_narrow_left
+import financer.core.ui.generated.resources.check
+import financer.core.ui.generated.resources.close_ic
+import financer.feature.transaction_impl.generated.resources.Res
+import financer.feature.transaction_impl.generated.resources.transaction_amount_label
+import financer.feature.transaction_impl.generated.resources.transaction_amount_placeholder
+import financer.feature.transaction_impl.generated.resources.transaction_category_all
+import financer.feature.transaction_impl.generated.resources.transaction_category_label
+import financer.feature.transaction_impl.generated.resources.transaction_category_picker_title
+import financer.feature.transaction_impl.generated.resources.transaction_category_placeholder
+import financer.feature.transaction_impl.generated.resources.transaction_category_recommended
+import financer.feature.transaction_impl.generated.resources.transaction_date_label
+import financer.feature.transaction_impl.generated.resources.transaction_date_placeholder
+import financer.feature.transaction_impl.generated.resources.transaction_note_label
+import financer.feature.transaction_impl.generated.resources.transaction_note_placeholder
+import financer.feature.transaction_impl.generated.resources.transaction_save
+import financer.feature.transaction_impl.generated.resources.transaction_saving
+import financer.feature.transaction_impl.generated.resources.transaction_type_expense
+import financer.feature.transaction_impl.generated.resources.transaction_type_income
+import kotlinx.coroutines.flow.StateFlow
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import financer.core.ui.generated.resources.Res as CoreRes
 
 private val FieldShape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)
 private val SelectorShape = RoundedCornerShape(16.dp)
 
 @Composable
 internal fun TransactionScreen(
-    store: TransactionStore,
+    uiState: StateFlow<TransactionUiState>,
+    slot: Value<ChildSlot<*, DefaultTransactionComponent.SlotChild>>,
+    onIntent: (TransactionStore.Intent) -> Unit,
+    onOpenCategoryPicker: () -> Unit,
+    onCloseCategoryPicker: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val state by store.stateFlow.collectAsState()
-    val canSave = amountInputToKopecks(state.amountInput) > 0L &&
-        state.selectedCategory != null &&
-        !state.isSaving &&
-        !state.isLoading
-    val topCategories = state.topCategories.take(3)
-    var isCategoryPickerVisible by rememberSaveable { mutableStateOf(false) }
-    var isCalendarVisible by rememberSaveable { mutableStateOf(false) }
+    val state by uiState.collectAsState()
+    val slotState by slot.subscribeAsState()
+    val density = LocalDensity.current
+    val isKeyboardVisible = WindowInsets.ime.getBottom(density) > 0
+    val focusManager = LocalFocusManager.current
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = { focusManager.clearFocus() },
+            ),
+    ) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 TransactionHeader(
                     selectedType = state.type,
-                    onClose = { store.accept(TransactionStore.Intent.Close) },
-                    onTypeSelected = { store.accept(TransactionStore.Intent.TypeToggled(it)) },
+                    onClose = { onIntent(TransactionStore.Intent.Close) },
+                    onTypeSelected = { onIntent(TransactionStore.Intent.TypeToggled(it)) },
                 )
             },
             bottomBar = {
-                Surface(
-                    tonalElevation = 2.dp,
-                    color = MaterialTheme.colorScheme.surface,
-                ) {
-                    Button(
-                        onClick = { store.accept(TransactionStore.Intent.Confirm) },
-                        enabled = canSave,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        shape = RoundedCornerShape(20.dp),
+                if (!isKeyboardVisible) {
+                    Surface(
+                        tonalElevation = 2.dp,
+                        color = MaterialTheme.colorScheme.surface,
                     ) {
-                        Text(
-                            text = if (state.isSaving) "Сохраняем..." else "Сохранить",
-                            style = MaterialTheme.typography.titleMedium,
-                        )
+                        Button(
+                            onClick = { onIntent(TransactionStore.Intent.Confirm) },
+                            enabled = state.canSave,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            shape = RoundedCornerShape(20.dp),
+                        ) {
+                            Text(
+                                text = stringResource(if (state.isSaving) Res.string.transaction_saving else Res.string.transaction_save),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                        }
                     }
                 }
             },
@@ -123,70 +156,58 @@ internal fun TransactionScreen(
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
                 TransactionField(
-                    label = "Сумма",
+                    label = stringResource(Res.string.transaction_amount_label),
                     value = state.amountInput,
-                    onValueChange = { store.accept(TransactionStore.Intent.AmountChanged(it)) },
-                    placeholder = "0,00",
+                    onValueChange = { onIntent(TransactionStore.Intent.AmountChanged(it)) },
+                    placeholder = stringResource(Res.string.transaction_amount_placeholder),
                     suffix = "₽",
                     keyboardType = KeyboardType.Decimal,
                     textStyle = MaterialTheme.typography.bodyLarge,
                     valueValidator = ::isValidAmountInput,
                 )
                 TransactionReadOnlyField(
-                    label = "Категория",
+                    label = stringResource(Res.string.transaction_category_label),
                     value = state.selectedCategory?.let { "${it.emoji} ${it.name}" }.orEmpty(),
-                    placeholder = "Выбери категорию",
-                    onClick = { isCategoryPickerVisible = true },
+                    placeholder = stringResource(Res.string.transaction_category_placeholder),
+                    onClick = onOpenCategoryPicker,
                 )
-                SuggestionRow(
-                    selectedCategoryId = state.selectedCategory?.id,
-                    categories = topCategories,
-                    onCategorySelected = { store.accept(TransactionStore.Intent.CategorySelected(it)) },
-                    onAllCategoriesClick = { isCategoryPickerVisible = true },
-                )
-                TransactionReadOnlyField(
-                    label = "Дата",
-                    value = formatDateForField(state.date),
-                    placeholder = "Выбери дату",
-                    onClick = { isCalendarVisible = true },
+                TransactionDateField(
+                    label = stringResource(Res.string.transaction_date_label),
+                    value = state.dateInput,
+                    onValueChange = { onIntent(TransactionStore.Intent.DateInputChanged(it)) },
+                    placeholder = stringResource(Res.string.transaction_date_placeholder),
                 )
                 TransactionField(
-                    label = "Комментарий",
+                    label = stringResource(Res.string.transaction_note_label),
                     value = state.note,
-                    onValueChange = { store.accept(TransactionStore.Intent.NoteChanged(it)) },
-                    placeholder = "Необязательно",
+                    onValueChange = { onIntent(TransactionStore.Intent.NoteChanged(it)) },
+                    placeholder = stringResource(Res.string.transaction_note_placeholder),
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
         }
 
-        if (isCategoryPickerVisible) {
-            CategoryPickerModal(
-                type = state.type,
-                allCategories = state.allCategories,
-                selectedCategoryId = state.selectedCategory?.id,
-                onDismiss = { isCategoryPickerVisible = false },
-                onTypeSelected = { store.accept(TransactionStore.Intent.TypeToggled(it)) },
-                onConfirm = { categoryId ->
-                    store.accept(TransactionStore.Intent.CategorySelected(categoryId))
-                    isCategoryPickerVisible = false
-                },
-            )
-        }
-
-        if (isCalendarVisible) {
-            MaterialCalendarDialog(
-                initialDate = state.date.date,
-                onDismiss = { isCalendarVisible = false },
-                onConfirm = { date ->
-                    store.accept(
-                        TransactionStore.Intent.DateChanged(
-                            mergeDateWithCurrentTime(currentDateTime = state.date, selectedDate = date)
-                        )
+        AnimatedContent(
+            targetState = slotState.child?.instance,
+            transitionSpec = {
+                slideInVertically { it } togetherWith slideOutVertically { it }
+            },
+        ) { child ->
+            when (child) {
+                is DefaultTransactionComponent.SlotChild.CategoryPicker -> {
+                    CategoryPickerModal(
+                        topCategories = state.topCategories,
+                        allCategories = state.allCategories,
+                        selectedCategoryId = state.selectedCategory?.id,
+                        onDismiss = onCloseCategoryPicker,
+                        onSelect = { categoryId ->
+                            onIntent(TransactionStore.Intent.CategorySelected(categoryId))
+                            onCloseCategoryPicker()
+                        },
                     )
-                    isCalendarVisible = false
-                },
-            )
+                }
+                null -> Unit
+            }
         }
     }
 }
@@ -207,13 +228,18 @@ private fun TransactionHeader(
         Box(
             modifier = Modifier
                 .size(40.dp)
-                .clickable(onClick = onClose),
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onClose,
+                ),
             contentAlignment = Alignment.CenterStart,
         ) {
-            Text(
-                text = "×",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onBackground,
+            Icon(
+                painter = painterResource(CoreRes.drawable.close_ic),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.onBackground,
             )
         }
 
@@ -242,12 +268,12 @@ private fun TypeSelector(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             TypeSelectorItem(
-                title = "Расход",
+                title = stringResource(Res.string.transaction_type_expense),
                 selected = selectedType == TransactionType.EXPENSE,
                 onClick = { onTypeSelected(TransactionType.EXPENSE) },
             )
             TypeSelectorItem(
-                title = "Доход",
+                title = stringResource(Res.string.transaction_type_income),
                 selected = selectedType == TransactionType.INCOME,
                 onClick = { onTypeSelected(TransactionType.INCOME) },
             )
@@ -338,6 +364,90 @@ private fun TransactionField(
 }
 
 @Composable
+private fun TransactionDateField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier,
+) {
+    var textFieldValue by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = value,
+                selection = TextRange(value.length),
+            )
+        )
+    }
+
+    LaunchedEffect(value) {
+        if (value != textFieldValue.text) {
+            textFieldValue = TextFieldValue(
+                text = value,
+                selection = TextRange(value.length),
+            )
+        }
+    }
+
+    TextField(
+        value = textFieldValue,
+        onValueChange = { updatedValue ->
+            val filtered = updatedValue.text.filter { it.isDigit() }.take(8)
+            if (filtered != textFieldValue.text) {
+                textFieldValue = TextFieldValue(
+                    text = filtered,
+                    selection = TextRange(filtered.length),
+                )
+                onValueChange(filtered)
+            }
+        },
+        modifier = modifier.fillMaxWidth(),
+        label = { Text(label) },
+        placeholder = { Text(placeholder) },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        visualTransformation = DateMaskVisualTransformation,
+        textStyle = MaterialTheme.typography.titleMedium.copy(
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Start,
+        ),
+        shape = FieldShape,
+        colors = transactionFieldColors(),
+    )
+}
+
+private object DateMaskVisualTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val raw = text.text
+        val out = StringBuilder()
+        raw.forEachIndexed { index, char ->
+            if (index == 2 || index == 4) out.append('.')
+            out.append(char)
+        }
+
+        val offsetMapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                return when {
+                    offset <= 2 -> offset
+                    offset <= 4 -> offset + 1
+                    else -> offset + 2
+                }
+            }
+
+            override fun transformedToOriginal(offset: Int): Int {
+                return when {
+                    offset <= 2 -> offset
+                    offset <= 5 -> offset - 1
+                    else -> offset - 2
+                }.coerceIn(0, raw.length)
+            }
+        }
+
+        return TransformedText(AnnotatedString(out.toString()), offsetMapping)
+    }
+}
+
+@Composable
 private fun TransactionReadOnlyField(
     label: String,
     value: String,
@@ -366,7 +476,11 @@ private fun TransactionReadOnlyField(
             modifier = Modifier
                 .matchParentSize()
                 .clip(FieldShape)
-                .clickable(onClick = onClick),
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onClick,
+                ),
         )
     }
 }
@@ -391,75 +505,21 @@ private fun transactionFieldColors() = TextFieldDefaults.colors(
 )
 
 @Composable
-private fun SuggestionRow(
-    selectedCategoryId: Long?,
-    categories: List<Category>,
-    onCategorySelected: (Long) -> Unit,
-    onAllCategoriesClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        categories.forEach { category ->
-            SuggestionChip(
-                title = "${category.emoji} ${category.name}",
-                selected = selectedCategoryId == category.id,
-                onClick = { onCategorySelected(category.id) },
-            )
-        }
-        SuggestionChip(
-            title = "Все категории",
-            selected = false,
-            onClick = onAllCategoriesClick,
-        )
-    }
-}
-
-@Composable
-private fun SuggestionChip(
-    title: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    Surface(
-        shape = RoundedCornerShape(18.dp),
-        color = if (selected) {
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
-        } else {
-            MaterialTheme.colorScheme.surfaceVariant
-        },
-        border = BorderStroke(
-            width = 1.dp,
-            color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-        ),
-        onClick = onClick,
-    ) {
-        Text(
-            text = title,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-    }
-}
-
-@Composable
 private fun CategoryPickerModal(
-    type: TransactionType,
+    topCategories: List<Category>,
     allCategories: List<Category>,
     selectedCategoryId: Long?,
     onDismiss: () -> Unit,
-    onTypeSelected: (TransactionType) -> Unit,
-    onConfirm: (Long) -> Unit,
+    onSelect: (Long) -> Unit,
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -467,237 +527,131 @@ private fun CategoryPickerModal(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = "←",
+                Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .clickable(onClick = onDismiss)
-                        .padding(top = 4.dp),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = onDismiss,
+                        ),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    Icon(
+                        painter = painterResource(CoreRes.drawable.arrow_narrow_left),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.onBackground,
+                    )
+                }
                 Text(
-                    text = "Выбор категории",
-                    style = MaterialTheme.typography.titleLarge,
+                    text = stringResource(Res.string.transaction_category_picker_title),
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Spacer(modifier = Modifier.size(40.dp))
             }
 
-            CategoryTypeTabs(
-                selectedType = type,
-                onTypeSelected = onTypeSelected,
-            )
-
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .weight(1f)
-                    .verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Spacer(modifier = Modifier.height(8.dp))
-                allCategories.forEach { category ->
-                    CategoryPickerItem(
-                        category = category,
-                        selected = selectedCategoryId == category.id,
-                        onClick = { onConfirm(category.id) },
+                if (topCategories.isNotEmpty()) {
+                    item(key = "header-recommended") {
+                        Text(
+                            text = stringResource(Res.string.transaction_category_recommended),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
+                        )
+                    }
+                    items(
+                        items = topCategories,
+                        key = { "top-${it.id}" },
+                    ) { category ->
+                        CategoryRow(
+                            category = category,
+                            selected = selectedCategoryId == category.id,
+                            onClick = { onSelect(category.id) },
+                        )
+                    }
+                }
+
+                item(key = "header-all") {
+                    Text(
+                        text = stringResource(Res.string.transaction_category_all),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(
+                            top = if (topCategories.isNotEmpty()) 20.dp else 8.dp,
+                            bottom = 12.dp,
+                        ),
                     )
                 }
-                Spacer(modifier = Modifier.height(24.dp))
+                items(
+                    items = allCategories,
+                    key = { "all-${it.id}" },
+                ) { category ->
+                    CategoryRow(
+                        category = category,
+                        selected = selectedCategoryId == category.id,
+                        onClick = { onSelect(category.id) },
+                    )
+                }
+
+                item(key = "bottom-spacer") {
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
             }
         }
     }
 }
 
 @Composable
-private fun CategoryPickerItem(
+private fun CategoryRow(
     category: Category,
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        color = if (selected) {
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
-        } else {
-            MaterialTheme.colorScheme.surface
-        },
-        border = BorderStroke(
-            width = 1.dp,
-            color = if (selected) MaterialTheme.colorScheme.primary else Color(0xFFE6E6E9),
-        ),
-        onClick = onClick,
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .background(
+                if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+                else Color.Transparent,
+            )
+            .padding(horizontal = 12.dp, vertical = 14.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Surface(
-                    modifier = Modifier.size(42.dp),
-                    shape = CircleShape,
-                    color = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.22f) else Color.White,
-                    border = BorderStroke(1.dp, Color(0xFFE6E6E9)),
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = category.emoji,
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    }
-                }
-                Text(
-                    text = category.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Medium,
-                )
-            }
+            Text(
+                text = category.emoji,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                text = category.name,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            )
+        }
 
-            if (selected) {
-                Text(
-                    text = "✓",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
+        if (selected) {
+            Icon(
+                painter = painterResource(CoreRes.drawable.check),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.primary,
+            )
         }
     }
-}
-
-@Composable
-private fun CategoryTypeTabs(
-    selectedType: TransactionType,
-    onTypeSelected: (TransactionType) -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-    ) {
-        CategoryTypeTab(
-            title = "Расход",
-            selected = selectedType == TransactionType.EXPENSE,
-            onClick = { onTypeSelected(TransactionType.EXPENSE) },
-            modifier = Modifier.weight(1f),
-        )
-        CategoryTypeTab(
-            title = "Доход",
-            selected = selectedType == TransactionType.INCOME,
-            onClick = { onTypeSelected(TransactionType.INCOME) },
-            modifier = Modifier.weight(1f),
-        )
-    }
-}
-
-@Composable
-private fun CategoryTypeTab(
-    title: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier.clickable(onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(2.dp)
-                .background(
-                    if (selected) MaterialTheme.colorScheme.onBackground
-                    else Color(0xFFE7E7EA)
-                ),
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun MaterialCalendarDialog(
-    initialDate: LocalDate,
-    onDismiss: () -> Unit,
-    onConfirm: (LocalDate) -> Unit,
-) {
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = initialDate.toPickerSelectionMillis(),
-    )
-
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            Button(
-                onClick = {
-                    val selectedDateMillis = datePickerState.selectedDateMillis ?: return@Button
-                    onConfirm(selectedDateMillis.toLocalDate())
-                },
-                shape = RoundedCornerShape(16.dp),
-            ) {
-                Text("Выбрать")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Отмена")
-            }
-        },
-    ) {
-        DatePicker(
-            state = datePickerState,
-            showModeToggle = false,
-        )
-    }
-}
-
-private fun mergeDateWithCurrentTime(
-    currentDateTime: LocalDateTime,
-    selectedDate: LocalDate,
-): LocalDateTime {
-    return LocalDateTime(
-        year = selectedDate.year,
-        month = selectedDate.month,
-        day = selectedDate.dayOfMonth,
-        hour = currentDateTime.hour,
-        minute = currentDateTime.minute,
-    )
-}
-
-private fun formatDateForField(date: LocalDateTime): String {
-    return formatDateForField(date.date)
-}
-
-private fun formatDateForField(date: LocalDate): String {
-    val day = date.dayOfMonth.toString().padStart(2, '0')
-    val month = date.month.number.toString().padStart(2, '0')
-    val year = date.year.toString().padStart(4, '0')
-    return "$day.$month.$year"
-}
-
-private fun LocalDate.toPickerSelectionMillis(): Long {
-    return LocalDateTime(
-        year = year,
-        month = month,
-        day = dayOfMonth,
-        hour = 0,
-        minute = 0,
-    ).toInstant(TimeZone.UTC).toEpochMilliseconds()
-}
-
-private fun Long.toLocalDate(): LocalDate {
-    return Instant.fromEpochMilliseconds(this).toLocalDateTime(TimeZone.UTC).date
 }

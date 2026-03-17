@@ -11,7 +11,11 @@ internal class DefaultTransactionScreenProvider : TransactionScreenProvider {
     override fun provideScreen(component: TransactionComponent, modifier: Modifier) {
         val defaultComponent = component as? DefaultTransactionComponent ?: return
         TransactionScreen(
-            store = defaultComponent.store,
+            uiState = defaultComponent.uiState,
+            slot = defaultComponent.slot,
+            onIntent = defaultComponent.store::accept,
+            onOpenCategoryPicker = defaultComponent::openCategoryPicker,
+            onCloseCategoryPicker = defaultComponent::closeCategoryPicker,
             modifier = modifier,
         )
     }

@@ -10,7 +10,7 @@ internal class TransactionStoreReducer : Reducer<TransactionStore.State, Transac
                 amountInput = msg.amountInput,
                 type = msg.type,
                 selectedCategory = msg.selectedCategory,
-                date = msg.date,
+                dateInput = msg.dateInput,
                 note = msg.note,
                 topCategories = msg.topCategories,
                 allCategories = msg.allCategories,
@@ -33,7 +33,7 @@ internal class TransactionStoreReducer : Reducer<TransactionStore.State, Transac
                 selectedCategory = msg.selectedCategory,
             )
 
-            is TransactionStoreMessage.DateChanged -> copy(date = msg.date)
+            is TransactionStoreMessage.DateInputChanged -> copy(dateInput = msg.dateInput)
             is TransactionStoreMessage.NoteChanged -> copy(note = msg.note)
             is TransactionStoreMessage.SavingChanged -> copy(isSaving = msg.isSaving)
         }
