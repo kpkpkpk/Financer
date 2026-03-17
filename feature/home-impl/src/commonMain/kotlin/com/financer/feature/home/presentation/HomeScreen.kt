@@ -212,22 +212,21 @@ internal fun HomeScreen(
                 when (item) {
                     is HomeListItem.DateHeader -> {
 
-                            Row(
-                                Modifier.fillMaxWidth().padding(vertical = 4.dp, horizontal = 16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = item.title.resolve(),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-
-                                    )
-                                Text(
-                                    text = item.totalSum.resolve(),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
+                        Row(
+                            Modifier.fillMaxWidth().padding(vertical = 4.dp, horizontal = 28.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = item.title.resolve(),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                text = item.totalSum.resolve(),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
 
                     }
 
@@ -552,15 +551,15 @@ private fun TransactionRow(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
             .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(20.dp),
+        onClick = onClick,
+        colors = CardDefaults.cardColors(containerColor = FinancerTheme.colors.lightGray),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 10.dp),
+                .padding(horizontal = 12.dp, vertical = 18.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -570,7 +569,8 @@ private fun TransactionRow(
             ) {
                 Text(
                     text = transaction.categoryEmoji,
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleLarge,
+                    fontSize = 24.sp
                 )
                 Column {
                     Text(

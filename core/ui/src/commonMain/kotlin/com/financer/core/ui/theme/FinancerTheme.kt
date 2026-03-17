@@ -18,6 +18,7 @@ private val Pink = Color(0xFFE8A0B8)
 private val Lavender = Color(0xFFDBC4E8)
 private val Peach = Color(0xFFF0C0A0)
 private val Terracotta = Color(0xFF8B4A4A)
+private val LightGray = Color(0xFFF4F4F4)
 
 private val Green = Color(0xFF199201)
 private val Gray = Color(0xFFCCD0CC)
@@ -38,6 +39,7 @@ data class FinancerColors(
     val terracotta: Color = Terracotta,
     val green: Color = Green,
     val gray: Color = Gray,
+    val lightGray: Color = LightGray
 )
 
 internal val LocalFinancerColors = staticCompositionLocalOf { FinancerColors() }
