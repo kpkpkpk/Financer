@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.platform.LocalDensity
@@ -107,10 +108,11 @@ internal fun TransactionScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
+            .systemBarsPadding()
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = { focusManager.clearFocus() },
+                onClick = { focusManager.clearFocus(force = true) },
             ),
     ) {
         Scaffold(
@@ -169,7 +171,10 @@ internal fun TransactionScreen(
                     label = stringResource(Res.string.transaction_category_label),
                     value = state.selectedCategory?.let { "${it.emoji} ${it.name}" }.orEmpty(),
                     placeholder = stringResource(Res.string.transaction_category_placeholder),
-                    onClick = onOpenCategoryPicker,
+                    onClick = {
+                        focusManager.clearFocus()
+                        onOpenCategoryPicker()
+                    },
                 )
                 TransactionDateField(
                     label = stringResource(Res.string.transaction_date_label),
@@ -206,6 +211,7 @@ internal fun TransactionScreen(
                         },
                     )
                 }
+
                 null -> Unit
             }
         }
@@ -221,7 +227,7 @@ private fun TransactionHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -264,7 +270,7 @@ private fun TypeSelector(
         color = Color(0xFFEDEDED),
     ) {
         Row(
-            modifier = Modifier.padding(3.dp),
+            modifier = Modifier.padding(horizontal = 3.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             TypeSelectorItem(
